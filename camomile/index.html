@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta name="app-build" content="46d360f6b1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camomile — Персональный помощник</title>
+<!-- Стандартная иконка Camomile; заменяется выбранной пользователем при запуске. -->
+<link rel="icon" id="app-favicon" href="assets/icons/camomile.png">
+<link rel="stylesheet" href="css/styles.css?v=e2b7ec5f0a">
+</head>
+<body>
+
+<div id="app">
+  <!-- HEADER -->
+  <header id="header">
+    <!-- Кнопка сворачивания стоит первой: она управляет левой панелью и
+         должна быть НАД ней, а не в другом конце шапки. Раньше она жила
+         справа, рядом с настройками, и по ней невозможно было угадать,
+         что именно свернётся. Панель уходит целиком, а её место
+         занимает переписка. -->
+    <button id="sidebar-toggle" title="Свернуть панель">◧</button>
+    <!-- Имя агента задаёт пользователь при первом запуске (см.
+         engines/about-engine.js). До этого здесь стоит подпись
+         по умолчанию — именно подпись, а не имя. -->
+    <div class="logo" id="app-logo" title="Имя агента: ⚙ Настройки → Отображение"><span class="agent-icon" id="agent-icon" aria-hidden="true"><img src="assets/icons/camomile.png" alt=""></span> <span id="agent-name">Camomile</span></div>
+    <!-- Счётчик релизов: мелко, рядом с именем. Кликом открывается
+         история доработок — то же окно, что показывается само, когда
+         появилось что-то непрочитанное. -->
+    <button type="button" id="release-badge" title="Что нового">r0</button>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="chat">💬 Чаты</button>
+      <button class="tab-btn" data-tab="tools">🔧 Инструменты</button>
+      <button class="tab-btn" data-tab="skills">🧩 Навыки</button>
+      <button class="tab-btn" data-tab="prompts">📋 Промпты</button>
+      <button class="tab-btn" data-tab="files">📎 Файлы</button>
+    </div>
+    <span id="connection-status"><span class="status-dot offline"></span></span>
+    <a id="user-guide-link" href="doc/user/index.html" target="_blank" rel="noopener" title="Руководство пользователя" aria-label="Руководство пользователя">?</a>
+    <button id="settings-btn" title="Настройки">⚙</button>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div id="sidebar-resizer" title="Потяните, чтобы изменить ширину"></div>
+    <div class="sidebar-header">
+      <input type="text" id="sidebar-search" placeholder="Поиск...">
+    </div>
+    <div class="sidebar-list" id="sidebar-list"></div>
+    <div class="sidebar-footer">
+      <button class="btn btn-primary btn-block" id="sidebar-new-btn">+ Создать</button>
+      <div class="sidebar-footer-row" id="chat-io-row">
+        <button class="btn btn-secondary btn-sm" id="chat-export-btn" title="Выгрузить текущий чат в файл">⬆ Экспорт чата</button>
+        <button class="btn btn-secondary btn-sm" id="chat-import-btn" title="Загрузить чат из файла">⬇ Импорт чата</button>
+      </div>
+      <div class="sidebar-footer-row" id="chats-io-row">
+        <button class="btn btn-secondary btn-sm" id="chats-export-btn" title="Выгрузить несколько чатов с выбором">📦 Экспорт чатов</button>
+        <button class="btn btn-secondary btn-sm" id="chats-import-btn" title="Загрузить несколько чатов из архива">📥 Импорт чатов</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <!-- CHAT PANEL -->
+    <div class="panel active" id="panel-chat">
+      <div id="chat-messages">
+        <div class="empty-state">
+          <div class="icon">💬</div>
+          <div class="text">Начните новый чат или выберите существующий</div>
+        </div>
+      </div>
+      <div id="chat-input-area">
+        <!-- Строка состояния агента живёт ЗДЕСЬ, а не в ленте сообщений.
+             Пока она была последним элементом ленты, её уносило вверх
+             растущим ответом: на самом длинном ходе — с вызовами
+             инструментов и стримингом — пользователь не видел ни стадии,
+             ни времени, ни того, что работа вообще идёт. Здесь она
+             прибита к полю ввода и видна всегда. -->
+        <div id="agent-status-host" hidden></div>
+        <!-- Ход вызова инструментов: что уже выполнено, что выполняется
+             сейчас и сколько осталось до таймаута. Живёт рядом со строкой
+             состояния, а не в ленте: лента уезжает вверх вместе с ответом,
+             а следить за ходом надо именно тогда, когда он длинный.
+             Когда открыта панель плана, этот же список переезжает внутрь
+             текущего шага плана — см. _renderToolTrack. -->
+        <div id="tool-track-host" hidden></div>
+        <div class="chat-toolbar" id="chat-toolbar"></div>
+        <div id="chat-input-row">
+          <textarea id="chat-input" placeholder="Введите сообщение (Shift+Enter для новой строки)" rows="1"></textarea>
+          <button id="voice-btn" title="Голосовой ввод">🎙</button>
+          <button id="stop-btn" title="Прервать работу агента" hidden>⏹</button>
+          <button id="send-btn" title="Отправить">▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOLS PANEL -->
+    <div class="panel" id="panel-tools">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;">
+        <h3 style="flex:1;">Инструменты</h3>
+        <!-- Первая кнопка слева — переключатель плотности списка.
+             Своя на каждый раздел: в инструментах компактный вид нужен почти
+             всегда (их десятки), а в промптах — редко. -->
+        <button class="btn btn-secondary btn-sm density-btn" data-compact="tools" title="Компактный вид: только названия">▤ Компактно</button>
+        <button class="btn btn-secondary btn-sm" id="add-tool-folder-btn">📁 Папка</button>
+        <button class="btn btn-primary btn-sm" id="add-tool-btn">+ Новый инструмент</button>
+        <button class="btn btn-secondary btn-sm" id="add-mcp-server-btn"><svg class="mcp-icon" viewBox="15 15 165 180" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" aria-hidden="true"><path d="M25 97.8528L92.8822 29.9706C102.255 20.598 117.451 20.598 126.823 29.9706C136.196 39.3431 136.196 54.5391 126.823 63.9117L75.5581 115.177"/><path d="M76.2652 114.47L126.823 63.9117C136.196 54.5391 151.392 54.5391 160.765 63.9117L161.118 64.2652C170.491 73.6378 170.491 88.8338 161.118 98.2063L99.7248 159.6C96.6006 162.724 96.6006 167.789 99.7248 170.913L112.331 183.52"/><path d="M109.853 46.9411L59.6482 97.1457C50.2756 106.518 50.2756 121.714 59.6482 131.087C69.0208 140.459 84.2167 140.459 93.5893 131.087L143.794 80.8822"/></svg> + MCP-сервер</button>
+        <button class="btn btn-secondary btn-sm export-import-btn" data-section="tools" title="Выборочный экспорт инструментов">📦 Экспорт</button>
+        <button class="btn btn-secondary btn-sm import-btn" data-section="tools" title="Импорт из зашифрованного архива">📥 Импорт</button>
+      </div>
+      <div class="tools-grid" id="tools-grid"></div>   
+    </div>
+
+    <!-- SKILLS PANEL -->
+    <div class="panel" id="panel-skills">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;">
+        <h3 style="flex:1;">Навыки</h3>
+        <!-- Первая кнопка слева — переключатель плотности списка.
+             Своя на каждый раздел: в инструментах компактный вид нужен почти
+             всегда (их десятки), а в промптах — редко. -->
+        <button class="btn btn-secondary btn-sm density-btn" data-compact="skills" title="Компактный вид: только названия">▤ Компактно</button>
+        <button class="btn btn-secondary btn-sm" id="add-skill-folder-btn">📁 Папка</button>
+        <button class="btn btn-primary btn-sm" id="add-skill-btn">+ Новый навык</button>
+        <button class="btn btn-secondary btn-sm export-import-btn" data-section="skills" title="Выборочный экспорт навыков">📦 Экспорт</button>
+        <button class="btn btn-secondary btn-sm import-btn" data-section="skills" title="Импорт из зашифрованного архива">📥 Импорт</button>
+      </div>
+      <div class="skills-container" id="skills-container"></div>  
+    </div>
+
+    <!-- PROMPTS PANEL -->
+    <div class="panel" id="panel-prompts">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;">
+        <h3 style="flex:1;">Библиотека промптов</h3>
+        <!-- Первая кнопка слева — переключатель плотности списка.
+             Своя на каждый раздел: в инструментах компактный вид нужен почти
+             всегда (их десятки), а в промптах — редко. -->
+        <button class="btn btn-secondary btn-sm density-btn" data-compact="prompts" title="Компактный вид: только названия">▤ Компактно</button>
+        <button class="btn btn-secondary btn-sm" id="add-prompt-folder-btn">📁 Папка</button>
+        <button class="btn btn-primary btn-sm" id="add-prompt-btn">+ Новый промпт</button>
+        <button class="btn btn-secondary btn-sm export-import-btn" data-section="prompts" title="Выборочный экспорт промптов">📦 Экспорт</button>
+        <button class="btn btn-secondary btn-sm import-btn" data-section="prompts" title="Импорт из зашифрованного архива">📥 Импорт</button>
+      </div>
+      <div class="prompts-container" id="prompts-container"></div>   
+    </div>
+
+    <!-- FILES PANEL -->
+    <div class="panel" id="panel-files">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;">
+        <h3 style="flex:1;">Файлы</h3>
+        <button class="btn btn-secondary btn-sm" id="add-file-folder-btn">📁 Папка</button>
+        <button class="btn btn-primary btn-sm" id="add-file-btn">+ Добавить файлы</button>
+      </div>
+      <div class="files-container" id="files-container"></div>
+    </div>
+  </main>
+
+  <!-- ПАНЕЛЬ ПЛАНА -->
+  <!-- Появляется сама, когда у открытого чата есть активный план, и исчезает,
+       когда план закрыт. Место справа выбрано намеренно: план — это не
+       часть переписки, а её оглавление, и в ленте он либо уезжал вверх,
+       либо мешал читать ответы. -->
+  <aside id="plan-panel" hidden>
+    <!-- Ширину панели тянут за её ЛЕВУЮ границу — ту, что смотрит в
+         переписку: именно у неё пользователь и отнимает место. -->
+    <div id="plan-resizer" title="Потяните, чтобы изменить ширину. Двойной щелчок возвращает ширину по умолчанию"></div>
+    <div class="plan-panel-header">
+      <span class="plan-panel-title">🗂 План задачи</span>
+      <button type="button" id="plan-panel-hide" title="Скрыть панель плана">✕</button>
+    </div>
+    <div class="plan-panel-body" id="plan-panel-body"></div>
+  </aside>
+</div>
+
+<!-- MODALS CONTAINER -->
+<div id="modals"></div>
+
+<script src="app.min.js?v=46d360f6b1"></script>
+</body>
+</html>

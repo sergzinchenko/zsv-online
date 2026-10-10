@@ -1,0 +1,2901 @@
+@charset "UTF-8";
+
+/* ===== CSS RESET & VARIABLES ===== */
+:root {
+  --bg-primary: #0f0f14;
+  --bg-secondary: #1a1a24;
+  --bg-tertiary: #24243a;
+  --bg-hover: #2a2a44;
+  --text-primary: #e8e8f0;
+  --text-secondary: #9999bb;
+  --text-muted: #666688;
+  --accent: #6c5ce7;
+  --accent-light: #a29bfe;
+  --accent-dark: #4834d4;
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --danger: #e17055;
+  --border: #2d2d4a;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: 0.2s ease;
+  --sidebar-w: 280px;
+  --plan-w: 300px;
+  --header-h: 56px;
+  --tint-soft: rgba(255,255,255,0.02);
+  --overlay-strong: rgba(15,15,20,0.94);
+  --hl-comment: #6a6a8c;
+  --hl-string: #7ee2a8;
+  --hl-number: #f8b26a;
+  --hl-keyword: #c792ea;
+  --hl-literal: #ff9cac;
+  --hl-function: #82aaff;
+  --hl-builtin: #4fd6be;
+  --hl-property: #b8c4ff;
+  --hl-key: #82aaff;
+  --hl-regex: #ffcb6b;
+  --hl-punct: #9999bb;
+}
+
+/* ===== ТЕМА: СВЕТЛАЯ =====
+   Тёмная тема — значения по умолчанию в :root выше. Весь остальной
+   CSS написан через var(...), поэтому просто переопределяем те же
+   переменные — новых правил для конкретных элементов не нужно.
+   - Явный выбор "Светлая" (атрибут data-theme="light") побеждает
+     всегда, независимо от настроек ОС.
+   - Режим "Системная" — это ОТСУТСТВИЕ атрибута data-theme; тогда
+     решает медиа-запрос prefers-color-scheme. Если ОС просит тёмную
+     или ничего не сообщает, остаются значения :root выше как есть. */
+:root[data-theme="light"] {
+  --bg-primary: #f3f3f8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e9e9f2;
+  --bg-hover: #dfe0ee;
+  --text-primary: #1c1c28;
+  --text-secondary: #55556f;
+  --text-muted: #8a8aa0;
+  --accent: #6c5ce7;
+  --accent-light: #5b4bd6;
+  --accent-dark: #4834d4;
+  --success: #00997a;
+  --warning: #a9720a;
+  --danger: #c0392b;
+  --border: #dadae8;
+  --shadow: 0 4px 24px rgba(30,30,60,0.12);
+  --tint-soft: rgba(0,0,0,0.025);
+  --overlay-strong: rgba(255,255,255,0.94);
+  --hl-comment: #8a8aa0;
+  --hl-string: #107a3e;
+  --hl-number: #b35c00;
+  --hl-keyword: #7b2fb5;
+  --hl-literal: #c2185b;
+  --hl-function: #1f5fbf;
+  --hl-builtin: #00796b;
+  --hl-property: #3949ab;
+  --hl-key: #1f5fbf;
+  --hl-regex: #9a6700;
+  --hl-punct: #55556f;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg-primary: #f3f3f8;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e9e9f2;
+    --bg-hover: #dfe0ee;
+    --text-primary: #1c1c28;
+    --text-secondary: #55556f;
+    --text-muted: #8a8aa0;
+    --accent: #6c5ce7;
+    --accent-light: #5b4bd6;
+    --accent-dark: #4834d4;
+    --success: #00997a;
+    --warning: #a9720a;
+    --danger: #c0392b;
+    --border: #dadae8;
+    --shadow: 0 4px 24px rgba(30,30,60,0.12);
+    --tint-soft: rgba(0,0,0,0.025);
+    --overlay-strong: rgba(255,255,255,0.94);
+  --hl-comment: #8a8aa0;
+  --hl-string: #107a3e;
+  --hl-number: #b35c00;
+  --hl-keyword: #7b2fb5;
+  --hl-literal: #c2185b;
+  --hl-function: #1f5fbf;
+  --hl-builtin: #00796b;
+  --hl-property: #3949ab;
+  --hl-key: #1f5fbf;
+  --hl-regex: #9a6700;
+  --hl-punct: #55556f;
+  }
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== LAYOUT ===== */
+#app {
+  display: grid;
+  /* Третья колонка — панель плана. Она нулевой ширины, пока плана нет:
+     так у раскладки не появляется второго набора правил, а появление
+     панели — это одна переменная, а не перестройка сетки. */
+  grid-template-columns: var(--sidebar-w) 1fr 0;
+  grid-template-rows: var(--header-h) 1fr;
+  height: 100vh;
+}
+#app.plan-open { grid-template-columns: var(--sidebar-w) 1fr var(--plan-w); }
+
+/* ===== HEADER ===== */
+#header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  z-index: 100;
+}
+
+#header .logo {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+}
+/* Иконка агента — своими цветами, а не градиентом имени: у имени текст
+   прозрачный, и эмодзи иначе превратился бы в залитый силуэт. */
+#header .logo .agent-icon {
+  -webkit-text-fill-color: initial;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+#header .logo .agent-icon img { width: 22px; height: 22px; border-radius: 5px; object-fit: contain; }
+
+/* Выбор иконки в настройках. */
+.icon-picker { display: flex; gap: 10px; align-items: flex-start; }
+.icon-preview {
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 28px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-tertiary);
+}
+.icon-preview img { width: 32px; height: 32px; object-fit: contain; }
+.icon-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.icon-preset {
+  width: 32px; height: 32px; font-size: 18px; line-height: 1;
+  border: 1px solid var(--border); border-radius: var(--radius); background: transparent; cursor: pointer;
+}
+.icon-preset:hover { border-color: var(--accent); }
+.icon-preset.active { border-color: var(--accent); background: var(--bg-tertiary); }
+.icon-preset img { width: 24px; height: 24px; border-radius: 4px; object-fit: contain; vertical-align: middle; }
+#user-guide-link { color: var(--text-secondary); border: 1px solid var(--border); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; flex: none; }
+#user-guide-link:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Счётчик релизов. Мелко и нейтрально: это отметка версии, а не
+   элемент управления, но кликом открывается история доработок. */
+#release-badge {
+  align-self: center;
+  margin-left: -8px;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+#release-badge:hover { color: var(--accent-light); border-color: var(--accent); }
+/* Есть непрочитанное — значок перестаёт быть нейтральным. */
+#release-badge.has-unread {
+  color: var(--accent-light);
+  border-color: var(--accent);
+  background: rgba(108,92,231,0.12);
+}
+
+#header .tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.tab-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.tab-btn.active { background: var(--accent); color: #fff; }
+
+#settings-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+#settings-btn:hover { background: var(--accent); color: #fff; }
+
+/* ===== SIDEBAR ===== */
+/* ── Места в сетке заданы явно ──
+   Раньше области раскладывались автоматически, по порядку в разметке, и
+   это ломалось ровно там, где нужнее всего: спрятанная через display:none
+   панель перестаёт быть элементом сетки, автоматическая раскладка
+   сдвигает всё влево — и переписка попадала в колонку шириной 0.
+   То есть кнопка сворачивания убирала вместе с панелью и сам чат.
+   С явными координатами спрятать можно что угодно: остальные останутся
+   на своих местах. */
+#sidebar {
+  grid-column: 1;
+  grid-row: 2;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Свёрнутое состояние ──
+   Панель убирается целиком — со списком, поиском и кнопками, — а
+   освободившуюся колонку забирает переписка: ширина первой колонки
+   становится нулевой, вторая остаётся 1fr и растягивается на всё.
+   Именно ради этого сворачивание и нужно: чтобы место доставалось
+   разговору, а не пропадало. Работает это только вместе с явными
+   координатами областей выше — без них спрятанная панель уводила за
+   собой и переписку. */
+#app.sidebar-collapsed { grid-template-columns: 0 1fr 0; }
+#app.sidebar-collapsed.plan-open { grid-template-columns: 0 1fr var(--plan-w); }
+#app.sidebar-collapsed #sidebar { display: none; }
+
+/* Полоса для перетаскивания правой границы панели.
+   Лежит поверх границы, поэтому визуально не занимает места. */
+#sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+}
+#sidebar-resizer:hover,
+#sidebar-resizer.dragging { background: var(--accent); opacity: 0.55; }
+
+/* Кнопка сворачивания в шапке */
+#sidebar-toggle {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+#sidebar-toggle:hover { border-color: var(--accent); color: var(--accent-light); }
+
+/* Во время перетаскивания гасим выделение текста и подсказки —
+   иначе курсор «цепляет» содержимое дерева. */
+body.resizing-sidebar { user-select: none; cursor: col-resize; }
+body.resizing-sidebar #sidebar * { pointer-events: none; }
+
+.sidebar-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-header input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.sidebar-header input:focus { border-color: var(--accent); }
+
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.sidebar-item {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.sidebar-item:hover { background: var(--bg-hover); }
+.sidebar-item.active { background: var(--bg-tertiary); border-left: 3px solid var(--accent); }
+
+.sidebar-item .title {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.sidebar-item .meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sidebar-item .delete-btn {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  transition: var(--transition);
+}
+
+.sidebar-item:hover .delete-btn { opacity: 1; }
+
+/* ── Действия в строке чата ──
+   Появляются по наведению, как и кнопки папок: постоянно видимые три
+   значка в каждой строке превратили бы список чатов в панель кнопок. */
+.sidebar-item .item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: var(--transition);
+}
+.sidebar-item:hover .item-actions,
+.sidebar-item .item-actions:focus-within { opacity: 1; }
+.sidebar-item .item-actions button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 3px;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+.sidebar-item .item-actions button:hover { color: var(--accent-light); background: var(--bg-hover); }
+.sidebar-item .item-actions .delete-btn { opacity: 1; color: var(--danger); font-size: 12px; }
+
+/* Кнопка копирования имени на карточках инструментов и файлов.
+   Тихая по умолчанию: она нужна изредка и не должна спорить за внимание
+   с названием, рядом с которым стоит. */
+.copy-name-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  opacity: 0.45;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.copy-name-btn:hover { opacity: 1; color: var(--accent-light); background: var(--bg-hover); }
+.tool-card:hover .copy-name-btn, .file-card:hover .copy-name-btn { opacity: 0.85; }
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg-hover); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-block { width: 100%; justify-content: center; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+/* display: inline-flex у .btn перебивает [hidden] из таблицы стилей браузера. */
+.btn[hidden] { display: none; }
+
+/* ===== MAIN CONTENT ===== */
+#main {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.panel { display: none; flex-direction: column; height: 100%; }
+.panel.active { display: flex; }
+
+/* ===== CHAT PANEL ===== */
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  line-height: 1.6;
+  position: relative;
+  animation: msgIn 0.3s ease;
+  /* Без этого длинный URL или строка JSON без пробелов растягивает
+     сообщение за пределы контейнера чата. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+  background: var(--accent);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.message.assistant {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.message.system {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  align-self: center;
+  font-size: 12px;
+  max-width: 90%;
+}
+
+.message.tool-call {
+  background: rgba(0,184,148,0.1);
+  border: 1px solid var(--success);
+  color: var(--success);
+  align-self: center;
+  font-size: 12px;
+  font-family: monospace;
+  max-width: 90%;
+  /* Результаты инструментов — это JSON и URL: длинные строки без пробелов
+     не переносятся сами и вылезали за рамку (заметно в Edge/Chrome).
+     min-width:0 нужен, потому что элемент — flex-ребёнок: без него
+     содержимое распирает бокс сверх max-width.
+     Прокрутки здесь НЕТ намеренно: в кратком режиме текст просто
+     переносится по словам. Своя прокрутка есть только у .tool-pre
+     внутри подробного режима. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.sidebar-footer-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.sidebar-footer-row[hidden] { display: none; }
+.sidebar-footer-row .btn { flex: 1; font-size: 11px; padding: 5px 6px; }
+
+/* Чаты внутри дерева папок */
+.sidebar-item.chat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 14px;
+  cursor: grab;
+}
+.sidebar-item.chat-item:active { cursor: grabbing; }
+.sidebar-item.chat-item .title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Подпись под сообщением: время, модель-автор, длительность */
+.message.system.truncation-notice {
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  background: rgba(253,203,110,0.10);
+  font-size: 13px;
+  max-width: 90%;
+}
+
+.message.system.model-switch {
+  border: 1px dashed var(--accent);
+  color: var(--accent-light);
+  background: rgba(108,92,231,0.10);
+  font-size: 12px;
+  max-width: 90%;
+}
+
+.msg-footer {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.code-block {
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+.code-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.code-lang { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.code-copy-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.code-copy-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+.code-copy-btn.copied { border-color: var(--success); color: var(--success); }
+.code-block pre { margin: 0; border: none; border-radius: 0; }
+
+/* Варианты ответа в вопросе агента (ask_user с choices). */
+.ask-choices { display: flex; flex-direction: column; gap: 6px; }
+.ask-choice-btn { text-align: left; justify-content: flex-start; white-space: normal; }
+.ask-choice-btn.suggested { border-color: var(--accent); }
+.ask-choices-multi { display: flex; flex-direction: column; gap: 4px; }
+
+/* Различия перед записью файла (write_file). */
+.diff-view {
+  max-height: 50vh;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  white-space: pre;
+}
+.diff-view span { display: block; }
+.diff-view .diff-add { background: color-mix(in srgb, var(--success) 16%, transparent); color: var(--text-primary); }
+.diff-view .diff-del { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--text-primary); }
+.diff-view .diff-hunk { color: var(--accent-light); }
+.diff-view .diff-file { color: var(--text-muted); }
+
+/* Таблицы в ответе (core/markdown.js): прокрутка по горизонтали внутри
+   своей рамки, а не всей ленты; кнопка копирования — как у кода. */
+.md-table-wrap { margin: 8px 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.md-table-bar { display: flex; justify-content: flex-end; padding: 4px 6px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); }
+.md-table-scroll { overflow-x: auto; }
+.md-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.md-table th, .md-table td { padding: 5px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.md-table th { background: var(--bg-tertiary); font-weight: 600; white-space: nowrap; }
+.md-table tbody tr:last-child td { border-bottom: none; }
+.md-table tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-tertiary) 40%, transparent); }
+.table-copy-btn, .msg-copy-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  font-size: 11px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.table-copy-btn:hover, .msg-copy-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+.table-copy-btn.copied, .msg-copy-btn.copied { border-color: var(--success); color: var(--success); }
+.msg-copy-btn { padding: 0 6px; margin-left: 6px; font-size: 11px; line-height: 1.6; }
+
+.message pre {
+  background: var(--bg-primary);
+  padding: 12px;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.message code {
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 13px;
+}
+
+.message p { margin-bottom: 8px; }
+.message p:last-child { margin-bottom: 0; }
+
+/* Панель хода работы агента.
+   Живёт над полем ввода (см. #agent-status-host в index.html), а не в
+   ленте сообщений: в ленте её уносило вверх растущим ответом ровно
+   тогда, когда она нужнее всего. */
+#agent-status-host { margin-bottom: 8px; }
+.agent-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 90%;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.agent-status .status-text { color: var(--text-primary); }
+.agent-status .status-detail { color: var(--text-muted); font-size: 11px; }
+.agent-status .status-timer {
+  margin-left: auto;
+  padding-left: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.agent-status .status-timer.near-limit { color: var(--warning); }
+
+/* Отчёт пробы модели в карточке: несколько коротких строк, каждая —
+   отдельная находка. Плохие новости выделены, но не криком. */
+.probe-report { margin: 4px 0 0; }
+.probe-line {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding: 3px 0 3px 10px;
+  border-left: 2px solid var(--border);
+}
+.probe-line.probe-bad { color: var(--warning); border-left-color: var(--warning); }
+
+/* Постоянная память: список записей в окне сводки. */
+.mem-list { max-height: 50vh; overflow-y: auto; }
+.mem-item { border-bottom: 1px solid var(--border); padding: 6px 0; }
+.mem-item > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.mem-item > summary::-webkit-details-marker { display: none; }
+.mem-item > summary::before { content: '▸'; color: var(--text-muted); }
+.mem-item[open] > summary::before { content: '▾'; }
+.mem-item .tool-pre { margin-top: 6px; max-height: 40vh; }
+.mem-key { flex: 1; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.mem-size { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+/* ── Проверка ограничений (вкладка «Ограничения») ──
+   Замечание должно читаться как разбор, а не как ошибка формы: сначала
+   что не так, потом почему, и рядом — готовое значение. */
+.limits-ok { font-size: 12px; color: var(--success, var(--accent-light)); }
+.limits-verdict { font-size: 12px; margin-bottom: 8px; }
+.limits-verdict.limits-error { color: var(--danger); }
+.limits-verdict.limits-warn { color: var(--warning); }
+.limits-finding {
+  border-left: 3px solid var(--border);
+  padding: 6px 0 6px 10px;
+  margin-bottom: 8px;
+}
+.limits-finding.limits-error { border-left-color: var(--danger); }
+.limits-finding.limits-warn { border-left-color: var(--warning); }
+.limits-finding .lf-title { font-size: 12px; color: var(--text-primary); }
+.limits-finding .lf-why {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 2px 0 6px;
+}
+.limits-finding .lf-hint { font-size: 11px; color: var(--text-muted); }
+
+/* Параметры вызова в краткой строке: приглушены, чтобы имя инструмента
+   читалось первым, но и не прятались — ради них строка и нужна. */
+.tool-args { color: var(--text-muted); font-size: 11px; }
+.tool-err { color: var(--danger); font-size: 11px; }
+
+/* ── Разделитель дня в переписке ──
+   Дата стоит один раз на день, а не в каждой подписи: в подписи она
+   превращалась бы в шум, а без неё время «14:32» в недельной переписке
+   не значит ничего. */
+.day-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: lowercase;
+}
+.day-divider::before,
+.day-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.msg-time { font-variant-numeric: tabular-nums; cursor: help; }
+.tool-stamp { float: right; color: var(--text-muted); font-size: 11px; }
+
+/* ── Лента вызовов инструментов ──
+   Живёт над полем ввода рядом со строкой состояния, а при открытой
+   панели плана переезжает внутрь текущего шага (см. _renderToolTrack).
+   Поэтому оформление не привязано к месту: те же правила работают и в
+   узкой колонке плана. */
+#tool-track-host { margin-bottom: 8px; }
+.tool-track {
+  max-width: 90%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.plan-track .tool-track {
+  max-width: none;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+}
+.tool-track .tt-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tool-track .tt-title { color: var(--text-primary); }
+.tool-track .tt-count { font-variant-numeric: tabular-nums; }
+.tool-track .tt-budget {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.tool-track .tt-more { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.tool-track .tt-rows { margin-top: 4px; display: flex; flex-direction: column; gap: 2px; }
+.tool-track .tt-row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+.tool-track .tt-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, Consolas, monospace;
+}
+.tool-track .tt-ms,
+.tool-track .tt-countdown {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tool-track .tt-countdown.near-limit { color: var(--warning); }
+.tool-track .tt-current { margin-top: 4px; display: flex; gap: 8px; align-items: center; }
+/* Выполняется сейчас — единственная строка, которую надо найти глазами
+   мгновенно; выполненные приглушены, чтобы не спорить с ней за внимание. */
+.tool-track .tt-running .tt-name { color: var(--accent-light); font-weight: 600; }
+.tool-track .tt-done .tt-name { color: var(--text-muted); }
+.tool-track .tt-error .tt-mark,
+.tool-track .tt-error .tt-name { color: var(--danger); }
+.tool-track .tt-pending .tt-mark,
+.tool-track .tt-pending .tt-name { opacity: 0.6; }
+.tool-track .tt-details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.tool-track .tt-details > summary::-webkit-details-marker { display: none; }
+.tool-track .tt-details[open] > summary .tt-name { white-space: normal; }
+.tool-track .tt-io { padding: 4px 0 6px 20px; }
+.tool-track .tt-io-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.tool-track .tt-io pre {
+  margin: 2px 0;
+  padding: 6px 8px;
+  max-height: 200px;
+  overflow: auto;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Дерево хода: подзадача и её вызовы ── */
+.tool-track .tt-sub .tt-name { color: var(--text-primary); font-family: inherit; white-space: normal; }
+.tool-track .tt-sub-progress {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* Вызовы подзадачи — со сдвигом и линией слева: вложенность должна
+   читаться взглядом, а не выводиться из порядка строк. */
+.tool-track .tt-children {
+  margin-left: 7px;
+  padding-left: 9px;
+  border-left: 1px solid var(--border);
+}
+.tool-track .tt-row { grid-template-columns: 14px 1fr auto auto auto; }
+.tool-track .tt-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+}
+.tool-track .tt-btn:hover { color: var(--danger); }
+
+/* ── Управление ходом в панели ── */
+.run-controls { margin-top: 10px; }
+.run-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.run-buttons .btn { flex: 1 1 auto; }
+.run-paused {
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: var(--bg-tertiary);
+}
+.run-paused-title { font-size: 12px; color: var(--warning); margin-bottom: 4px; }
+.run-paused-text { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+.run-paused-links { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+/* Подробный блок вызова в самой переписке — тоже свёрнут по умолчанию:
+   развёрнутый ответ инструмента занимал экран целиком. */
+.tool-call .tool-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tool-call .tool-detail > summary::-webkit-details-marker { display: none; }
+.tool-call .tool-detail > summary::before { content: '▸'; color: var(--text-muted); }
+.tool-call .tool-detail[open] > summary::before { content: '▾'; }
+
+.status-spinner {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: statusSpin 0.8s linear infinite;
+}
+
+@keyframes statusSpin { to { transform: rotate(360deg); } }
+
+/* Индикатор «этот чат сейчас генерирует ответ» в списке чатов —
+   виден и тогда, когда открыт другой чат (см. this._chatRuns в ui.js). */
+.chat-busy-spinner {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: statusSpin 0.8s linear infinite;
+}
+.sidebar-item.chat-item.chat-busy .title { color: var(--accent-light); }
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 16px;
+  align-self: flex-start;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-light);
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+#chat-input-area {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+#chat-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 14px;
+  resize: none;
+  max-height: 120px;
+  min-height: 42px;
+  font-family: inherit;
+  outline: none;
+  line-height: 1.5;
+}
+
+#chat-input:focus { border-color: var(--accent); }
+
+#send-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+#send-btn:hover { background: var(--accent-dark); }
+#send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.chat-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.toolbar-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.toolbar-meta { border-top: 1px solid var(--border); padding-top: 6px; }
+
+.chip.stat-chip { cursor: default; }
+.chip.stat-chip#tool-stats-chip { cursor: pointer; }
+.chip.stat-chip.muted { opacity: 0.6; }
+.chip.stat-chip.ctx-warn {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+.chip.stat-chip.ctx-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(225,112,85,0.12);
+}
+
+.message.system.context-alert { max-width: 90%; font-size: 13px; }
+.message.system.context-alert.warn {
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  background: rgba(253,203,110,0.10);
+}
+.message.system.context-alert.danger {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  background: rgba(225,112,85,0.12);
+}
+
+#voice-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+#voice-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+#voice-btn.listening {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  animation: pulseRec 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseRec {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+#stop-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+#stop-btn[hidden] { display: none; }
+#stop-btn:hover { filter: brightness(1.15); }
+
+.message.tool-call .tool-meta { color: var(--text-muted); font-size: 11px; }
+
+/* Краткий режим: результат не должен растягивать ленту чата.
+   Три строки, дальше — многоточие; полный результат доступен
+   в подробном режиме (⚙ Настройки → Отображение). */
+.message.tool-call .tool-compact {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.message.tool-call .tool-section {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+/* Блок JSON или кода в окнах и ленте. Высоту задаёт место применения,
+   а прокрутка нужна всегда: без неё длинное содержимое вылезало из рамки
+   и ложилось поверх следующих строк окна. */
+.tool-pre {
+  display: block;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  tab-size: 2;
+}
+.message.tool-call .tool-pre {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  margin-top: 2px;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+/* Кнопка просмотра полного результата, вынесенного в артефакт.
+   В кратком режиме .tool-compact обрезает текст по трём строкам —
+   кнопка идёт ПОСЛЕ него, отдельным блоком, иначе попала бы под
+   обрезку вместе с текстом результата. */
+.message.tool-call .tool-artifact { margin-top: 6px; }
+
+/* Итог подзадачи — не технический вывод, а связный текст, который
+   заменил собой всю её работу: читается как обычный ответ. */
+.message.tool-call .subtask-result {
+  margin-top: 6px;
+  padding: 8px;
+  background: var(--bg-primary);
+  border-left: 2px solid var(--accent, var(--border));
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.message.system.subtask-banner { border-left: 2px solid var(--accent, var(--border)); }
+
+/* План задачи: список шагов в модальном окне и чип в панели чата. */
+.plan-list { display: flex; flex-direction: column; gap: 6px; }
+.plan-step {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 4px 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.plan-step .plan-note {
+  grid-column: 2;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+/* Шаг плана — сетка «отметка | текст», и место в ней надо указывать
+   явно: без этого лента вызовов попадала в первую колонку шириной 18px
+   и переносилась по одному-два символа на строку. Занимает всю ширину
+   шага, включая колонку отметки: в узкой панели каждый пиксель на счету. */
+.plan-step .plan-track { grid-column: 1 / -1; }
+.plan-step .plan-track:empty { display: none; }
+.plan-step.plan-done .plan-title { color: var(--text-muted); text-decoration: line-through; }
+.plan-step.plan-doing .plan-title { color: var(--accent-light); font-weight: 600; }
+.plan-step.plan-failed .plan-mark { color: var(--danger); }
+.chip.plan-chip { cursor: pointer; }
+
+/* Предупреждение о карантине в окне подтверждения: этот случай должен
+   отличаться от рядового вопроса до того, как текст прочитан. */
+.sec-quarantine {
+  border: 1px solid var(--warning);
+  border-left-width: 3px;
+  background: rgba(253,203,110,0.10);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+/* ── Панель плана справа ──
+   Оглавление работы, а не часть переписки: поэтому вынесена из ленты
+   в собственную колонку (см. #app.plan-open). */
+#plan-panel {
+  grid-column: 3;
+  grid-row: 2;
+  position: relative;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* Специфичнее, чем #plan-panel выше: иначе display:flex победил бы
+   стандартное правило [hidden] и панель осталась бы на экране. */
+#plan-panel[hidden] { display: none; }
+
+/* Полоса для перетаскивания левой границы панели — зеркало
+   #sidebar-resizer. Лежит поверх границы, поэтому места не занимает. */
+#plan-resizer {
+  position: absolute;
+  top: 0;
+  left: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+}
+#plan-resizer:hover,
+#plan-resizer.dragging { background: var(--accent); opacity: 0.55; }
+body.resizing-plan { user-select: none; cursor: col-resize; }
+body.resizing-plan #plan-panel * { pointer-events: none; }
+
+.plan-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.plan-panel-title { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; }
+#plan-panel-hide {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+#plan-panel-hide:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.plan-panel-body { padding: 12px 14px; overflow-y: auto; flex: 1; }
+.plan-goal {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.plan-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.plan-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+.plan-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+/* Шаг «в работе» подсвечивается фоном: в панели, в отличие от окна,
+   важнее всего ответ на вопрос «чем агент занят прямо сейчас». */
+.plan-panel-body .plan-step { padding: 4px 6px; border-radius: var(--radius); }
+.plan-panel-body .plan-step.plan-doing { background: var(--tint-soft); }
+.plan-facts { margin-top: 12px; }
+.plan-facts-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+.plan-facts ul { margin: 0; padding-left: 16px; }
+.plan-facts li { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+.plan-panel-actions { margin-top: 14px; }
+.plan-panel-hint { font-size: 10px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+
+/* Просмотр отчёта о выполнении плана. Отчёт написан на Markdown, и
+   смотреть его сырым текстом незачем: окно показывает собранную
+   разметку. Высота ограничена, чтобы кнопки окна оставались на виду. */
+.report-view {
+  max-height: 68vh;
+  overflow: auto;
+  padding: 14px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.report-view h1 { font-size: 18px; margin: 0 0 10px; }
+.report-view h2 { font-size: 15px; margin: 18px 0 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+.report-view h3 { font-size: 14px; margin: 14px 0 6px; color: var(--accent-light); }
+.report-view ul, .report-view ol { margin: 6px 0 10px 20px; }
+.report-view li { margin-bottom: 3px; }
+.report-view p { margin: 0 0 8px; }
+.report-view pre {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin: 6px 0 10px;
+  overflow-x: auto;
+  font-size: 12px;
+}
+.report-view code { font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 12px; }
+.report-view table { border-collapse: collapse; margin: 6px 0 10px; }
+.report-view th, .report-view td { border: 1px solid var(--border); padding: 4px 8px; font-size: 12px; }
+.report-view-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Шапка отчёта и его записи: ход работы должен читаться сверху вниз, а
+   аргументы и ответы раскрываться по требованию. */
+.report-head { width: 100%; margin: 0 0 14px; }
+.report-head th {
+  text-align: left;
+  width: 90px;
+  color: var(--text-muted);
+  font-weight: 500;
+  vertical-align: top;
+  border: none;
+  padding: 2px 10px 2px 0;
+}
+.report-head td { border: none; padding: 2px 0; }
+.report-step { margin: 0 0 14px; padding-left: 10px; border-left: 2px solid var(--border); }
+.report-step-done { border-left-color: var(--success); }
+.report-step-failed { border-left-color: var(--danger); }
+.report-step-doing { border-left-color: var(--accent); }
+.report-step h3 { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin: 0 0 6px; }
+.report-mark { font-size: 13px; }
+.report-dim { color: var(--text-muted); font-size: 11px; font-weight: 400; }
+.report-note-line { font-size: 12px; color: var(--text-secondary); margin: 0 0 8px; }
+.report-item { margin: 0 0 10px; }
+.report-item-head { font-size: 11px; color: var(--text-secondary); display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.report-item.report-error .report-item-head { color: var(--danger); }
+.report-text { white-space: pre-wrap; margin: 4px 0 0; }
+.report-user .report-text { color: var(--text-secondary); }
+.report-io { margin: 4px 0 0; }
+.report-io summary { cursor: pointer; font-size: 11px; color: var(--text-muted); }
+.report-io summary:hover { color: var(--accent-light); }
+.report-io-size { opacity: 0.7; }
+.report-pre {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin: 4px 0 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 12px;
+}
+
+/* Идущая задача на Python: этап, часы и последние строки вывода.
+   Расчёт на минуту без этого выглядит как зависший агент. */
+.message.system.exec-live { border-left: 2px solid var(--accent); }
+.exec-live-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.exec-live-stage { color: var(--text-secondary); }
+.exec-live-time { color: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.exec-live-head .btn { margin-left: auto; }
+.exec-live-out {
+  margin: 8px 0 0;
+  padding: 6px 8px;
+  max-height: 140px;
+  overflow: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chip.exec-chip-running { border-color: var(--accent); }
+
+/* Вызовы, которыми агент ведёт план, показываются одной строкой при
+   любой выбранной детализации: содержимое плана целиком видно в панели
+   справа, а десять подробных блоков «отметил шаг» вытесняли из ленты
+   сам разговор. */
+.message.tool-call.tool-plan {
+  padding: 4px 10px;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.message.tool-call.tool-plan .tool-compact { font-size: 11px; }
+
+/* Свёрнутая часть переписки: служебная запись, по умолчанию сложена. */
+.message.system.context-summary { border-left: 2px solid var(--warning); }
+.message.system.context-summary .summary-body {
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--text-primary);
+  max-height: 40vh;
+  overflow: auto;
+}
+.message.system.context-summary [data-summary-toggle] { margin-left: 6px; font-size: 11px; padding: 2px 8px; }
+
+/* Предложение продолжить прерванный ход. Заметное, но не тревожное:
+   работа не потеряна, решение продолжать — за пользователем. */
+.message.system.resume-offer { border-left: 2px solid var(--warning); }
+.message.tool-call [data-artifact] { font-size: 11px; padding: 3px 8px; }
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.stats-table th, .stats-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.stats-table th {
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin-top: 4px;
+}
+.check-row input { width: auto; }
+
+.sel-list {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  background: var(--bg-primary);
+}
+.sel-list .check-row { justify-content: flex-start; }
+.sel-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sel-folder {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Пояснение под строкой выбора в окне резервной копии. Части слепка
+   называются коротко («Настройки приложения»), и без строки о том, что
+   именно туда входит, выбор состава превращается в угадывание. Отступ
+   слева выравнивает текст по названию, а не по галочке. */
+.bk-hint {
+  margin: 2px 0 8px 26px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.chip {
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.chip:hover { border-color: var(--accent); color: var(--accent-light); }
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ===== TOOLS PANEL ===== */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.tool-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.tool-card:hover { border-color: var(--accent); }
+
+.tool-card .tool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tool-card .tool-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.tool-card .tool-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.tool-card .tool-params {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: monospace;
+  background: var(--bg-primary);
+  padding: 8px;
+  border-radius: var(--radius);
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.toggle-switch input { display: none; }
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-tertiary);
+  border-radius: 24px;
+  transition: var(--transition);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+/* Компактный вариант — для строки дерева папок (переключатель всей
+   вложенной группы инструментов сразу, см. _renderSidebarTree). */
+.toggle-switch.sm { width: 28px; height: 16px; flex: 0 0 auto; }
+.toggle-switch.sm .toggle-slider { border-radius: 16px; }
+.toggle-switch.sm .toggle-slider::before { width: 10px; height: 10px; left: 3px; bottom: 3px; }
+.toggle-switch.sm input:checked + .toggle-slider::before { transform: translateX(12px); }
+
+/* «Часть содержимого включена, часть выключена» — третье состояние
+   нативного checkbox (indeterminate ставится только из JS). */
+.toggle-switch input:indeterminate + .toggle-slider { background: var(--text-muted); }
+.toggle-switch input:indeterminate + .toggle-slider::before { transform: translateX(10px); }
+
+/* ===== ПРИВЯЗКА НАВЫК ↔ ИНСТРУМЕНТЫ ===== */
+
+/* Список с галочками в редакторе навыка */
+.skill-tools-picker {
+  max-height: 210px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  padding: 4px;
+}
+
+.skill-tool-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+}
+/* Фильтр в списке прячет строки через row.hidden. Без этого правила
+   ничего не происходило: display:flex выше — правило автора, а
+   [hidden]{display:none} приходит из таблицы стилей браузера и проигрывает
+   ему по специфичности. Внешне это выглядело как «поиск не работает». */
+.skill-tool-row[hidden] { display: none; }
+.skill-tool-row:hover { background: var(--bg-hover); }
+.skill-tool-row.bound { background: rgba(108,92,231,0.12); }
+.skill-tool-row input { width: auto; margin: 0; }
+.skill-tool-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.skill-tool-state {
+  font-size: 10px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1px 7px;
+  flex: 0 0 auto;
+}
+.skill-tool-state.on { color: var(--success); border-color: var(--success); }
+
+/* Привязанные инструменты на карточке навыка */
+.skill-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0 4px;
+}
+
+.skill-tool-chip {
+  font-size: 10px;
+  font-family: ui-monospace, Consolas, monospace;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  color: var(--accent-light);
+  border: 1px solid transparent;
+}
+/* Выключенный инструмент навыку недоступен — видно без наведения */
+.skill-tool-chip.off {
+  color: var(--text-muted);
+  border-color: var(--border);
+  background: transparent;
+  text-decoration: line-through;
+}
+
+.skill-tools-warn { font-size: 10px; color: var(--warning); padding: 2px 4px; }
+
+/* Системные навык и инструменты: выключить нельзя */
+.toggle-switch.locked { cursor: not-allowed; opacity: 0.75; }
+.toggle-switch.locked .toggle-slider { background: var(--text-muted); }
+.tool-card.tool-locked { border-left: 3px solid var(--accent); }
+.chip.chip-locked { cursor: default; }
+
+/* Знак протокола MCP (UI.MCP_ICON): по высоте строки, цветом текста */
+.mcp-icon { width: 1.05em; height: 1.05em; vertical-align: -0.17em; flex: none; }
+
+/* Узел MCP-сервера в дереве инструментов */
+.mcp-badge {
+  display: inline-block; margin-left: 4px; padding: 0 4px; border-radius: 4px;
+  font-size: 9px; font-weight: 600; letter-spacing: .03em; vertical-align: 1px;
+  border: 1px solid var(--accent); color: var(--accent-light, var(--accent));
+}
+
+/* Навык в панели чата: кнопка управления инструментами и счётчик выключенных */
+.chip .chip-gear {
+  margin-left: 4px; padding: 0 3px; border: none; background: transparent;
+  color: inherit; opacity: .55; cursor: pointer; font-size: 11px; line-height: 1;
+}
+.chip .chip-gear:hover { opacity: 1; }
+.chip .chip-off-count {
+  margin-left: 4px; font-size: 10px; padding: 0 4px; border-radius: 6px;
+  background: var(--bg-tertiary, rgba(0,0,0,.15)); color: var(--warning, #e0a030);
+}
+/* Отметка «код проверен» на карточке инструмента */
+.tool-review { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); cursor: pointer; }
+.tool-review.pending { color: var(--warning, #e0a030); }
+.tool-review input { width: auto; margin: 0; }
+
+/* Ряд кнопок на карточке (навыки, правка, удаление) */
+.tool-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Навыки, использующие инструмент, — на карточке инструмента */
+.tool-skills {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 6px 0 2px;
+  line-height: 1.5;
+}
+
+/* ===== SKILLS PANEL ===== */
+.skills-container {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.skill-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  height: 100%;
+}
+
+.skill-list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skill-edit-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { border-color: var(--accent); }
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: 'Fira Code', monospace;
+}
+
+/* ===== PROMPTS PANEL ===== */
+.prompts-container {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.prompt-categories {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.prompt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.prompt-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.prompt-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.prompt-card .prompt-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.prompt-card .prompt-preview {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.prompt-card .prompt-tags {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  font-size: 10px;
+  color: var(--accent-light);
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 90%;
+  max-width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+/* Широкий вариант — для окон с вкладками (настройки, экспорт/импорт),
+   где при 520px содержимое не помещалось и появлялась прокрутка.
+   resize: both позволяет пользователю растянуть окно ещё больше;
+   для работы resize обязателен overflow, отличный от visible. */
+.modal.modal-wide {
+  width: min(1100px, 94vw);
+  max-width: 94vw;
+  max-height: 90vh;
+  resize: both;
+  overflow: auto;
+  min-width: 480px;
+  min-height: 320px;
+}
+
+/* Подсказка о том, что угол можно тянуть */
+.modal.modal-wide::after {
+  content: '⁘';
+  position: sticky;
+  float: right;
+  bottom: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* Вкладки в широком окне не должны переноситься на вторую строку —
+   при нехватке места прокручиваем их горизонтально. */
+
+/* Двухколоночная раскладка внутри широкой модалки: на узких экранах
+   auto-fit сам сложит поля в одну колонку. */
+.modal.modal-wide .settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0 24px;
+  align-items: start;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+/* Заголовок окна — ручка для перетаскивания (см. _makeDraggable). */
+.modal h2.modal-drag-handle { cursor: move; user-select: none; touch-action: none; }
+
+.modal .form-group { margin-bottom: 12px; }
+
+/* Вкладки настроек — колонкой слева: их восемь, и в строку сверху они
+   не помещались, уезжая в горизонтальную прокрутку. Под вкладками —
+   «Сохранить»/«Отмена» (см. actionsSlot в _showModal). Прокручивается
+   только правая часть с содержимым вкладки, поэтому колонка с кнопками
+   на виду всегда — и при длинной вкладке, и после растягивания окна. */
+.modal.modal-wide.settings-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal.modal-wide.settings-modal::after { display: none; }
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.settings-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+}
+
+.settings-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-tabs .tab-btn { text-align: left; white-space: nowrap; }
+
+.settings-side .modal-actions {
+  flex-direction: column-reverse;   /* «Сохранить» — первой, сразу под вкладками */
+  justify-content: flex-start;
+  margin-top: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.settings-side .modal-actions .btn { width: 100%; }
+
+.settings-panels {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* На узком экране колонке места нет: вкладки — строкой с прокруткой над
+   содержимым, кнопки — строкой под ними. */
+@media (max-width: 768px) {
+  .settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .settings-side {
+    overflow: visible;
+    padding: 0 0 8px;
+    margin-bottom: 12px;
+    gap: 8px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-tabs { flex-direction: row; overflow-x: auto; scrollbar-width: thin; }
+  .settings-tabs .tab-btn { flex-shrink: 0; }
+  .settings-side .modal-actions { flex-direction: row; justify-content: flex-end; padding-top: 0; border-top: none; }
+  .settings-side .modal-actions .btn { width: auto; }
+}
+
+.settings-tab-panel { }
+.settings-tab-panel[hidden] { display: none; }
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.empty-state .icon { font-size: 48px; }
+.empty-state .text { font-size: 14px; }
+
+/* ===== STATUS INDICATOR ===== */
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.online { background: var(--success); }
+.status-dot.offline { background: var(--danger); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #app,
+  #app.plan-open,
+  #app.sidebar-collapsed,
+  #app.sidebar-collapsed.plan-open { grid-template-columns: 1fr; }
+  /* Колонка здесь одна, и явные координаты из раскладки для широкого
+     экрана увели бы переписку в несуществующую вторую. */
+  #main, #plan-panel { grid-column: 1; }
+  #sidebar { display: none; }
+  /* На узком экране панель плана отняла бы у переписки половину ширины.
+     План при этом не пропадает: он остаётся чипом в панели чата. */
+  #app.plan-open #plan-panel { display: none; }
+}
+
+/* ===== FILES ===== */
+.files-container { display: block; padding: 20px; overflow-y: auto; }
+
+.file-card .tool-header { display: flex; align-items: center; gap: 8px; }
+
+.file-state {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+}
+.file-state.ok { color: var(--success); border-color: var(--success); }
+.file-state.warn { color: var(--warning); border-color: var(--warning); }
+
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+/* ===== HIERARCHY TREE ===== */
+#tools-grid { display: block; }
+
+.tree-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.tree-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 24px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.tree-folder {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--tint-soft);
+}
+
+.tree-folder-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: grab;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+.tree-folder-header:active { cursor: grabbing; }
+
+.tree-folder-header .tree-toggle {
+  cursor: pointer;
+  color: var(--text-secondary);
+  width: 14px;
+  text-align: center;
+}
+
+.tree-folder-name { font-weight: 600; font-size: 14px; flex: 1; }
+
+.tree-folder-actions { display: flex; gap: 4px; opacity: 0; transition: var(--transition); }
+.tree-folder-header:hover .tree-folder-actions { opacity: 1; }
+
+.tree-folder-actions button {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 7px;
+  transition: var(--transition);
+}
+.tree-folder-actions button:hover { background: var(--accent); color: #fff; }
+
+.tree-folder-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tree-folder-body.collapsed { display: none; }
+
+.tree-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.tree-item-wrap { cursor: grab; }
+.tree-item-wrap:active { cursor: grabbing; }
+
+.drop-hover {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+  background: rgba(108,92,231,0.08);
+}
+
+/* ===== SIDEBAR TREE ===== */
+.tree-nav { display: flex; flex-direction: column; gap: 2px; }
+
+.tree-node-row {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+}
+.tree-node-row:hover { background: var(--bg-hover); }
+.tree-node-row.selected { background: var(--bg-tertiary); border-left-color: var(--accent); }
+
+.tree-node-row .tw-toggle {
+  width: 14px; text-align: center; flex: 0 0 auto;
+  color: var(--text-secondary); cursor: pointer;
+}
+.tree-node-row .tw-name {
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tree-node-row .tw-actions { display: flex; gap: 2px; opacity: 0; transition: var(--transition); }
+.tree-node-row:hover .tw-actions { opacity: 1; }
+.tree-node-row .tw-actions button {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 12px; padding: 0 3px;
+}
+.tree-node-row .tw-actions button:hover { color: var(--accent-light); }
+
+.tree-node-children { margin-left: 12px; border-left: 1px solid var(--border); padding-left: 2px; }
+.tree-node-children.collapsed { display: none; }
+
+.tree-node-row.drop-hover { background: rgba(108,92,231,0.15); outline: 1px dashed var(--accent); }
+
+/* Хлебные крошки в главной панели */
+.folder-breadcrumb {
+  padding: 4px 4px 14px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+/* Пояснение под крошками у системной папки: почему здесь ничего не двигается. */
+.folder-note {
+  margin: -8px 4px 14px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--accent);
+  background: var(--tint-soft);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.tree-node-row.system-folder .tw-name { color: var(--text-secondary); }
+
+/* ── Компактный режим панелей ──
+   Одна колонка вместо сетки карточек: в компактном виде строка — это
+   название и переключатель, и растягивать её на треть экрана незачем. */
+.tree-items.compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tree-items.compact .tree-item-wrap { min-width: 0; }
+
+.tool-card.compact-row,
+.prompt-card.compact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  min-height: 0;
+}
+.compact-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.compact-name.clickable { cursor: pointer; }
+.compact-name.clickable:hover { color: var(--accent-light); }
+
+/* Кнопка плотности: активное состояние видно, а не угадывается. */
+.density-btn.active { border-color: var(--accent); color: var(--accent-light); }
+
+/* Пометка вместо содержимого системного навыка. */
+.tool-params.locked-note {
+  font-style: italic;
+  color: var(--text-muted);
+  white-space: normal;
+}
+
+/* ── Короткие уведомления ──
+   Появляются, когда действие не выполнено, а решать пользователю нечего. */
+/* Напоминания (ui/ui-notes.js): карточки в углу, над окнами, но не
+   модальные — они ничего не заменяют и ждут, пока их закроют. */
+.reminder-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(360px, calc(100vw - 32px));
+}
+.reminder-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--warning);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  animation: toastIn 0.2s ease;
+}
+.reminder-card.missed { border-left-color: var(--danger); }
+.reminder-head { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.reminder-time { font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.reminder-text { font-size: 14px; color: var(--text-primary); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.reminder-actions { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+#toast-host {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+.toast {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 9px 14px;
+  max-width: 420px;
+  animation: toastIn 0.2s ease;
+}
+.toast.leaving { opacity: 0; transition: opacity 0.3s ease; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ===== BOOT ERROR ===== */
+.boot-error {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--overlay-strong);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.boot-error-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 560px;
+  box-shadow: var(--shadow);
+}
+.boot-error-card h2 { color: var(--danger); font-size: 18px; margin-bottom: 12px; }
+.boot-error-msg {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  margin-bottom: 14px;
+  word-break: break-word;
+}
+.boot-error-hint { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
+.boot-error-btn {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius); padding: 9px 16px;
+  font-size: 13px; cursor: pointer; margin-right: 8px; margin-bottom: 10px;
+}
+.boot-error-btn:hover { background: var(--accent-dark); }
+.boot-error-btn.danger { background: var(--danger); }
+.boot-error-btn.danger:hover { filter: brightness(1.1); }
+
+/* ===== SECURITY ===== */
+.sec-summary {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; margin-bottom: 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius);
+}
+.sec-tool { font-family: ui-monospace, Consolas, monospace; font-size: 14px; color: var(--text-primary); }
+.sec-cat { font-size: 11px; color: var(--warning); margin-left: auto; white-space: nowrap; }
+.sec-risks { margin: 4px 0 0 18px; font-size: 12px; color: var(--warning); line-height: 1.7; }
+
+/* Панели окна подтверждения: аргументы, код инструмента, замены. У каждой
+   своя прокрутка, поэтому пометки и кнопки под ними всегда видны. */
+.sec-panel {
+  padding: 8px 10px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.sec-panel-head {
+  display: flex; align-items: baseline; gap: 10px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.sec-panel-meta {
+  margin-left: auto; white-space: nowrap;
+  font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none;
+  color: var(--text-muted);
+}
+.sec-panel .tool-pre.sec-args { max-height: 38vh; }
+.sec-panel .tool-pre.sec-code { max-height: 32vh; }
+.sec-edit .tool-pre.sec-code { max-height: 18vh; }
+.sec-edit + .sec-edit { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.sec-edit-head { font-size: 12px; color: var(--text-primary); }
+.sec-edit-label { margin: 4px 0 2px; font-size: 11px; color: var(--text-muted); }
+.sec-notes { display: flex; flex-direction: column; gap: 6px; }
+.sec-note { font-size: 11px; color: var(--text-muted); }
+.sec-note-warn { font-size: 11px; color: var(--warning); }
+
+.files-restore {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 14px;
+  background: rgba(253,203,110,0.10);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+  color: var(--warning);
+  font-size: 12px;
+}
+.files-restore .btn { margin-left: auto; }
+
+/* ===== SKILLS PANEL MODES ===== */
+.skills-row { align-items: center; }
+
+.skills-toggle {
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.skills-toggle:hover { border-color: var(--accent); color: var(--accent-light); }
+
+.skills-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Занятость соседнего чата ──
+   Полоска над полем ввода, когда ход идёт в другом чате: без неё
+   заблокированная кнопка отправки выглядит поломкой. Живёт рядом со
+   строкой состояния и по тем же причинам — прибита к полю ввода,
+   а не уезжает вверх вместе с лентой. */
+.busy-elsewhere {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--warning);
+  border-radius: 4px;
+  background: rgba(253,203,110,0.10);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-light);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Остановка по ограничению — не ошибка, а решение, которое можно
+   пересмотреть: рядом с объяснением стоят обе кнопки (продолжить и
+   изменить ограничения), поэтому блок оформлен как предложение, а не
+   как сообщение об аварии. */
+.message.system.limit-stop {
+  max-width: 90%;
+  font-size: 13px;
+  border: 1px solid var(--warning);
+  border-left-width: 2px;
+  background: rgba(253,203,110,0.10);
+}
+.message.system.limit-warn {
+  max-width: 90%;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-left: 2px solid var(--warning);
+}
+
+/* ===== ОКНО ИНСТРУМЕНТА (кадр песочницы) =====
+   Приложение рисует только рамку: содержимое — это сам <iframe>
+   песочницы, положенный поверх неё (см. showSandboxDialog в
+   js/ui/ui-editors.js). Кадр при этом остаётся на своём месте в дереве —
+   перенос <iframe> перезагрузил бы документ и убил идущий инструмент. */
+.sandbox-dialog-veil {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1200;
+  animation: fadeIn 0.2s ease;
+}
+
+.sandbox-dialog-frame {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1201;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+  overflow: hidden;
+  animation: slideUp 0.25s ease;
+}
+
+.sandbox-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 8px 0 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.sandbox-dialog-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Видно, что окно нарисовало не приложение: внутри чужая вёрстка, и
+   человек вправе об этом знать, прежде чем что-то туда вводить. */
+.sandbox-dialog-mark {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sandbox-dialog-close {
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.sandbox-dialog-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* Сам кадр на время показа. Фон белый намеренно: документ инструмента
+   про тему приложения ничего не знает, и на тёмном фоне его текст по
+   умолчанию был бы нечитаем. */
+iframe.sandbox-dialog-view {
+  z-index: 1202;
+  background: #fff;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* Фон не прокручивается: кадр закреплён на месте, и уезжающая под ним
+   страница выглядела бы поломкой. */
+.sandbox-dialog-open, .sandbox-dialog-open body { overflow: hidden; }
+
+/* ===== КАРТОЧКА МОДЕЛИ =====
+   Шире обычного окна: в ней три числовых поля в ряд и отчёт пробы, а в
+   520px всё это слипалось. Растягивается мышью за угол, но только в
+   большую сторону — нынешний размер задан как наименьший, потому что
+   меньше содержимое уже не помещается. */
+.modal.modal-model {
+  width: min(880px, 96vw);
+  min-width: min(880px, 96vw);
+  max-width: 96vw;
+  min-height: 520px;
+  max-height: 92vh;
+  resize: both;
+  overflow: auto;
+}
+
+/* Подпись с подсказкой при наведении. Знак вопроса нужен, чтобы о
+   подсказке вообще узнали: невидимый title читают только те, кто и так
+   знает, что он там есть. */
+.lbl-hint { cursor: help; }
+/* Знак вопроса рисуется стилем, а не разметкой: подсказки превращаются из
+   текста автоматически (см. _applyHoverHints), и лишний элемент в подписи
+   пришлось бы вставлять туда же — а подписи бывают и с полем внутри. */
+.lbl-hint::after {
+  content: '?';
+  display: inline-block;
+  margin-left: 5px;
+  width: 13px;
+  height: 13px;
+  line-height: 13px;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: none;
+  vertical-align: 1px;
+  flex: none;
+}
+.lbl-hint:hover::after { background: var(--accent); color: #fff; }
+
+/* Место под «Заметкой» до пробы не пустует: там сказано, что в нём
+   появится и как это получить. */
+.probe-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.probe-head {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+/* ===== ОБРАТНЫЙ ОТСЧЁТ ОЖИДАНИЯ =====
+   Пока окно инструмента открыто, ход агента стоит. Человек об этом знать
+   не обязан — поэтому видно, сколько его ещё ждут, и отсчёт можно снять. */
+.wait-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.wait-countdown .wait-clock { font-size: 10px; }
+.wait-countdown.wait-soon { color: var(--warning); border-color: var(--warning); }
+.wait-countdown.wait-over { color: var(--danger); border-color: var(--danger); }
+.wait-countdown.wait-held { color: var(--text-muted); }
+
+.wait-stop {
+  background: none;
+  border: 0;
+  padding: 0 2px;
+  font-size: 10px;
+  color: var(--accent-light);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.wait-stop:hover { color: var(--accent); }
+
+
+/* ===== РАСТЯГИВАЕМОЕ ОКНО =====
+   Тянется за правый нижний угол. Размер при открытии закреплён как
+   наименьший (см. _makeResizable), здесь снят только потолок: обычные 520
+   пикселей ширины и 80% высоты мешали бы растянуть окно. */
+.modal.modal-resizable {
+  resize: both;
+  overflow: auto;
+  max-width: 96vw;
+  max-height: 92vh;
+}
+.modal.modal-resizable:not(.modal-wide)::after {
+  content: '⁘';
+  position: sticky;
+  float: right;
+  bottom: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* ===== ПРОВЕРКА ФОРМЫ МОДЕЛЬЮ (ui/ui-review.js) ===== */
+.modal-actions .review-btn { margin-right: auto; }
+.modal-actions .modal-aside-btn { order: -1; margin-right: auto; align-self: center; }
+/* Рядом с кнопкой-справкой подписи кнопок выбора не переносятся: в
+   узком окне «Начать с нуля» разваливалось на две строки. */
+.modal-actions:has(.modal-aside-btn) .btn { white-space: nowrap; }
+
+.review-panel {
+  margin: 14px 0 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.review-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.review-close {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+}
+.review-close:hover { color: var(--text-primary); }
+.review-summary {
+  padding: 6px 8px;
+  border-left: 3px solid var(--border);
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.review-summary.review-good { border-left-color: var(--success); }
+.review-summary.review-warn { border-left-color: var(--warning); }
+.review-summary.review-bad  { border-left-color: var(--danger); }
+.review-line { margin: 4px 0; }
+.review-muted { color: var(--text-muted); }
+.review-error { color: var(--danger); }
+
+.review-issue {
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.review-issue-main { display: flex; gap: 6px; color: var(--text-primary); }
+.review-icon { flex: none; }
+.review-fix { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0 22px; }
+.review-fix-text {
+  flex-basis: 100%;
+  max-height: 240px;
+  overflow: auto;
+  margin: 2px 0 0;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+.review-applied { opacity: 0.6; }
+.review-subhead { font-weight: 600; color: var(--text-secondary); margin: 10px 0 4px; }
+.review-help { margin: 0; padding-left: 18px; color: var(--text-primary); }
+.review-raw { max-height: 320px; overflow: auto; }
+
+/* Поле, исправленное по совету модели, — видно, что его тронули. */
+.review-touched { outline: 1px dashed var(--accent); outline-offset: 1px; }
+
+
+/* ===== ПОДСВЕТКА КОДА В ПОЛЯХ (ui/code-highlight.js) =====
+   Раскрашенный <pre> лежит точно под прозрачным текстом <textarea>.
+   Совпадать у них должно всё, что влияет на положение символов: шрифт,
+   размер, межстрочный интервал, отступы, рамка, перенос. Поэтому эти
+   свойства заданы здесь обоим сразу, а не унаследованы по отдельности. */
+.code-edit { position: relative; }
+.code-edit .code-hl,
+.form-group .code-edit textarea.code-input {
+  font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  white-space: pre;
+  overflow-wrap: normal;
+  tab-size: 2;
+  letter-spacing: 0;
+  box-sizing: border-box;
+}
+.code-edit .code-hl {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  pointer-events: none;
+}
+.code-edit .code-hl code { font: inherit; }
+.form-group .code-edit textarea.code-input {
+  position: relative;
+  display: block;
+  width: 100%;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--text-primary);
+  overflow: auto;
+}
+.form-group .code-edit textarea.code-input::selection {
+  background: rgba(108, 92, 231, 0.35);
+  color: transparent;
+}
+.form-group .code-edit textarea.code-input:focus { border-color: var(--accent); }
+
+.hl-comment  { color: var(--hl-comment); font-style: italic; }
+.hl-string   { color: var(--hl-string); }
+.hl-number   { color: var(--hl-number); }
+.hl-keyword  { color: var(--hl-keyword); }
+.hl-literal  { color: var(--hl-literal); }
+.hl-function { color: var(--hl-function); }
+.hl-builtin  { color: var(--hl-builtin); }
+.hl-property { color: var(--hl-property); }
+.hl-key      { color: var(--hl-key); }
+.hl-regex    { color: var(--hl-regex); }
+.hl-punct    { color: var(--hl-punct); }
+
+/* Состояние JSON под полем — остаётся на виду: это не пояснение, а
+   результат проверки (у него id, превращению в подсказку не подлежит). */
+.code-status { font-size: 11px; min-height: 15px; }
+.code-status.code-ok   { color: var(--success); }
+.code-status.code-warn { color: var(--warning); }
+.code-status.code-bad  { color: var(--danger); }
+
+/* ===== ЗАЩИТА ХОДА ПРИ ПРОВЕРКЕ ФОРМЫ ===== */
+.review-guard {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  border-left: 3px solid var(--success);
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.review-guard-live { margin-top: 4px; color: var(--warning); }
+
+/* ===== ОТЧЁТ О ЗАВИСИМОСТЯХ ИНСТРУМЕНТА ===== */
+.dep-section { margin: 10px 0; }
+.dep-title { font-weight: 600; margin-bottom: 6px; }
+.dep-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+.dep-manual { flex-direction: column; align-items: flex-start; }
+.dep-suggest { color: var(--text-secondary); font-size: 12px; }
+.dep-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+
+/* ===== ПОИСК В ИНТЕРНЕТЕ: проверка в форме ===== */
+.ws-test-result { font-size: 12px; line-height: 1.5; margin-top: 6px; }
+.ws-test-result ul { margin: 4px 0 0; padding-left: 18px; }
+.ws-test-result.ws-test-ok  { color: var(--success); }
+.ws-test-result.ws-test-ok li { color: var(--text-primary); }
+.ws-test-result.ws-test-bad { color: var(--danger); }
+
+
+/* ===== ИСТОРИЯ ДОРАБОТОК: КАТЕГОРИИ ===== */
+.rel-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.rel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rel-chip:hover { background: var(--bg-hover); color: var(--text-primary); }
+.rel-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.rel-count {
+  font-size: 10px;
+  opacity: 0.75;
+}
+.rel-group { margin-top: 8px; }
+.rel-group-head {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.rel-release + .rel-release { margin-top: 14px; }
+.rel-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 10px 0;
+}
