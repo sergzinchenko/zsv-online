@@ -1,0 +1,387 @@
+{
+  "format": "camomile-content-catalog-v1",
+  "packages": [
+    {
+      "id": "confluence",
+      "title": "Confluence",
+      "icon": "📘",
+      "description": "Корпоративный Confluence Server или Data Center через REST API: поиск, чтение, правка страниц, метки, комментарии и вложения",
+      "password": "camomile-confluence",
+      "minRelease": 38,
+      "version": "1.0.0",
+      "file": "confluence-1.0.0.json",
+      "readme": "confluence.md",
+      "signed": true,
+      "toolFolder": "Confluence",
+      "skills": [
+        {
+          "dir": "00-system",
+          "id": "skill_cf_system",
+          "name": "Confluence: серверы",
+          "icon": "📘",
+          "version": "1.0.0",
+          "description": "Справочник серверов Confluence, текущий сервер для всех чатов, вход токеном, паролем или Windows, проверка связи",
+          "tools": [
+            "confluence_system",
+            "confluence_status"
+          ]
+        },
+        {
+          "dir": "01-read",
+          "id": "skill_cf_read",
+          "name": "Confluence: чтение",
+          "icon": "📘",
+          "version": "1.0.0",
+          "description": "Пространства, страницы, поиск и чтение Confluence, вложения в загрузки",
+          "tools": [
+            "confluence_list_spaces",
+            "confluence_list_pages",
+            "confluence_search",
+            "confluence_get_page",
+            "confluence_attachments"
+          ]
+        },
+        {
+          "dir": "02-write",
+          "id": "skill_cf_write",
+          "name": "Confluence: правка",
+          "icon": "📘",
+          "version": "1.0.0",
+          "description": "Создание, правка и удаление страниц Confluence, метки, комментарии, преобразование разметки",
+          "tools": [
+            "confluence_convert_markup",
+            "confluence_create_page",
+            "confluence_update_page",
+            "confluence_delete_page",
+            "confluence_labels",
+            "confluence_comments"
+          ]
+        }
+      ],
+      "memory": [
+        {
+          "id": "mem_confluence",
+          "name": "Confluence: серверы"
+        }
+      ]
+    },
+    {
+      "id": "exchange",
+      "title": "Exchange",
+      "icon": "📧",
+      "description": "Корпоративная почта Microsoft Exchange через EWS: письма, календарь, адресная книга, отправка писем и приглашений с подтверждением",
+      "password": "camomile-exchange",
+      "version": "1.0.0",
+      "file": "exchange-1.0.0.json",
+      "readme": "exchange.md",
+      "signed": true,
+      "toolFolder": "Exchange",
+      "skills": [
+        {
+          "dir": "00-system",
+          "id": "skill_ex_system",
+          "name": "Exchange: серверы",
+          "icon": "📧",
+          "version": "1.0.2",
+          "description": "Справочник серверов Exchange, текущий сервер для всех чатов, вход Windows или логином и паролем, проверка связи с EWS",
+          "tools": [
+            "ex_system",
+            "ex_check"
+          ]
+        },
+        {
+          "dir": "01-mail",
+          "id": "skill_ex_mail",
+          "name": "Exchange: почта",
+          "icon": "📧",
+          "version": "1.0.2",
+          "description": "Поиск и чтение писем в корпоративной почте Exchange: папки, отбор по отправителю, теме, датам, текст писем без цитат, вложения. Только чтение",
+          "tools": [
+            "ex_folders",
+            "ex_mail_find",
+            "ex_mail_get",
+            "ex_attachment"
+          ]
+        },
+        {
+          "dir": "02-calendar",
+          "id": "skill_ex_calendar",
+          "name": "Exchange: календарь",
+          "icon": "📅",
+          "version": "1.0.2",
+          "description": "Календарь Exchange: встречи за период, подробности встречи, занятость коллег и общие свободные окна, переговорные. Только чтение",
+          "tools": [
+            "ex_calendar",
+            "ex_event_get",
+            "ex_availability",
+            "ex_rooms"
+          ]
+        },
+        {
+          "dir": "03-people",
+          "id": "skill_ex_people",
+          "name": "Exchange: адресная книга",
+          "icon": "👥",
+          "version": "1.0.2",
+          "description": "Адресная книга Exchange: поиск сотрудников по имени, адреса, должности, телефоны, руководитель, состав списков рассылки. Только чтение",
+          "tools": [
+            "ex_people",
+            "ex_group"
+          ]
+        },
+        {
+          "dir": "04-send",
+          "id": "skill_ex_send",
+          "name": "Exchange: отправка",
+          "icon": "📨",
+          "version": "1.0.2",
+          "description": "Отправка писем, ответы, пересылка и приглашения на встречи через Exchange. Каждое действие — только после подтверждения пользователя в окне",
+          "tools": [
+            "ex_mail_send",
+            "ex_meeting_create"
+          ]
+        }
+      ],
+      "memory": [
+        {
+          "id": "mem_ex",
+          "name": "Exchange: серверы"
+        }
+      ]
+    },
+    {
+      "id": "naumen-sd",
+      "title": "Naumen Service Desk",
+      "icon": "🎫",
+      "description": "Чтение данных Naumen Service Desk через REST API: заявки, сотрудники, подразделения и другие объекты. Только чтение",
+      "password": "camomile-naumen-sd",
+      "version": "1.0.0",
+      "file": "naumen-sd-1.0.0.json",
+      "readme": "naumen-sd.md",
+      "signed": true,
+      "toolFolder": "Naumen SD",
+      "skills": [
+        {
+          "dir": "00-system",
+          "id": "skill_sd_system",
+          "name": "Naumen SD: серверы",
+          "icon": "🎫",
+          "version": "1.0.5",
+          "description": "Справочник серверов Naumen Service Desk, текущий сервер для всех чатов, вход Windows или логином и паролем Naumen, проверка связи с REST API",
+          "tools": [
+            "sd_system",
+            "sd_check"
+          ]
+        },
+        {
+          "dir": "01-read",
+          "id": "skill_sd_read",
+          "name": "Naumen SD: чтение данных",
+          "icon": "🔎",
+          "version": "1.2.1",
+          "description": "Поиск объектов Naumen Service Desk по классу и значениям атрибутов, чтение одного объекта по идентификатору в компактном виде: заявки, сотрудники, подразделения. Учитывает выясненное о сервере: рецепты запросов, названия значений вместо идентификаторов",
+          "tools": [
+            "sd_find",
+            "sd_get"
+          ]
+        },
+        {
+          "dir": "02-research",
+          "id": "skill_sd_research",
+          "name": "Naumen SD: исследование и знания",
+          "icon": "🧭",
+          "version": "1.1.1",
+          "description": "Исследование незнакомых классов Naumen SD и память о сервере: смысл атрибутов, справочники значений, рецепты запросов, профили классов; поиск по выясненному; сводки по значениям атрибута",
+          "tools": [
+            "sd_knowledge",
+            "sd_describe",
+            "sd_learn",
+            "sd_profile",
+            "sd_summary"
+          ]
+        }
+      ],
+      "memory": [
+        {
+          "id": "mem_sd",
+          "name": "Naumen SD: серверы и знания"
+        }
+      ]
+    },
+    {
+      "id": "sap-adt",
+      "title": "SAP ADT",
+      "icon": "🏭",
+      "description": "Чтение объектов ABAP через SAP ABAP Development Tools (ADT): поиск и пакеты, исходный код, словарь и CDS, транспорты, данные таблиц",
+      "password": "camomile-sap-adt",
+      "version": "1.0.0",
+      "file": "sap-adt-1.0.0.json",
+      "readme": "sap-adt.md",
+      "signed": true,
+      "toolFolder": "SAP ADT",
+      "skills": [
+        {
+          "dir": "00-systems",
+          "id": "skill_sapadt_systems",
+          "name": "SAP: системы",
+          "icon": "🏭",
+          "version": "1.1.2",
+          "description": "Справочник SAP-систем и мандантов, текущая система для всех чатов, вход Windows или пользователем SAP, проверка связи с ADT",
+          "tools": [
+            "sap_system",
+            "sap_check"
+          ]
+        },
+        {
+          "dir": "01-repository",
+          "id": "skill_sapadt_repository",
+          "name": "ADT: поиск и пакеты",
+          "icon": "🔎",
+          "version": "1.0.2",
+          "description": "Поиск объектов ABAP по имени и маске, состав пакетов и свойства объектов в текущей SAP-системе",
+          "tools": [
+            "adt_search",
+            "adt_package",
+            "adt_object_info"
+          ]
+        },
+        {
+          "dir": "02-source",
+          "id": "skill_sapadt_source",
+          "name": "ADT: исходный код",
+          "icon": "📜",
+          "version": "1.0.2",
+          "description": "Исходный код программ, include, классов, интерфейсов и функциональных модулей, состав объектов с номерами строк и тексты сообщений в текущей SAP-системе",
+          "tools": [
+            "adt_source",
+            "adt_object_structure",
+            "adt_message_class"
+          ]
+        },
+        {
+          "dir": "03-ddic",
+          "id": "skill_sapadt_ddic",
+          "name": "ADT: словарь и CDS",
+          "icon": "🗄",
+          "version": "1.0.2",
+          "description": "Таблицы, структуры, элементы данных, домены и CDS-объекты (представления, расширения метаданных, роли доступа, сервисы) в текущей SAP-системе",
+          "tools": [
+            "adt_ddic",
+            "adt_cds"
+          ]
+        },
+        {
+          "dir": "04-transports",
+          "id": "skill_sapadt_transports",
+          "name": "ADT: транспорты",
+          "icon": "🚚",
+          "version": "1.0.2",
+          "description": "Просмотр запросов на перенос в текущей SAP-системе: запросы пользователя, их задачи и объекты, в каком запросе объект",
+          "tools": [
+            "adt_transports",
+            "adt_transport"
+          ]
+        },
+        {
+          "dir": "05-data",
+          "id": "skill_sapadt_data",
+          "name": "ADT: данные",
+          "icon": "📊",
+          "version": "1.2.2",
+          "description": "Данные таблиц, ракурсов и CDS-представлений в текущей SAP-системе: выборка по согласованию с пользователем, строки — CSV или JSON в артефакт чата для анализа или файлом",
+          "tools": [
+            "adt_table_data",
+            "adt_sql"
+          ]
+        }
+      ],
+      "memory": [
+        {
+          "id": "mem_sapadt",
+          "name": "SAP: системы и настройки"
+        }
+      ]
+    },
+    {
+      "id": "xwiki",
+      "title": "xWiki",
+      "icon": "📗",
+      "description": "Корпоративная xWiki через REST API: поиск, чтение, правка и история страниц, комментарии, вложения, объекты и таблицы LiveTable",
+      "password": "camomile-xwiki",
+      "minRelease": 38,
+      "version": "1.0.0",
+      "file": "xwiki-1.0.0.json",
+      "readme": "xwiki.md",
+      "signed": true,
+      "toolFolder": "xWiki",
+      "skills": [
+        {
+          "dir": "00-system",
+          "id": "skill_xw_system",
+          "name": "xWiki: серверы",
+          "icon": "📗",
+          "version": "1.0.0",
+          "description": "Справочник серверов xWiki, текущий сервер для всех чатов, вход паролем или Windows, проверка связи, перечень вик",
+          "tools": [
+            "xwiki_system",
+            "xwiki_status",
+            "xwiki_list_wikis"
+          ]
+        },
+        {
+          "dir": "01-read",
+          "id": "skill_xw_read",
+          "name": "xWiki: чтение",
+          "icon": "📗",
+          "version": "1.0.0",
+          "description": "Пространства, страницы, поиск, чтение и история страниц xWiki, вложения в загрузки",
+          "tools": [
+            "xwiki_list_spaces",
+            "xwiki_list_pages",
+            "xwiki_search",
+            "xwiki_get_page",
+            "xwiki_history",
+            "xwiki_attachments"
+          ]
+        },
+        {
+          "dir": "02-write",
+          "id": "skill_xw_write",
+          "name": "xWiki: правка",
+          "icon": "📗",
+          "version": "1.0.0",
+          "description": "Создание, правка и удаление страниц xWiki, комментарии, объекты страниц",
+          "tools": [
+            "xwiki_create_page",
+            "xwiki_update_page",
+            "xwiki_delete_page",
+            "xwiki_comments",
+            "xwiki_objects"
+          ]
+        },
+        {
+          "dir": "03-tables",
+          "id": "skill_xw_tables",
+          "name": "xWiki: таблицы",
+          "icon": "📗",
+          "version": "1.0.0",
+          "description": "Таблицы LiveTable xWiki: классы, колонки и допустимые значения фильтров, запросы со страницами и сортировкой; справочник колонок в памяти",
+          "tools": [
+            "xwiki_classes",
+            "xwiki_livetable"
+          ]
+        }
+      ],
+      "memory": [
+        {
+          "id": "mem_xwiki_srv",
+          "name": "xWiki: серверы"
+        },
+        {
+          "id": "mem_xwiki",
+          "name": "xWiki: справочники таблиц"
+        }
+      ]
+    }
+  ]
+}

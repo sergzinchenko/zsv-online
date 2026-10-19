@@ -1,0 +1,1389 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Персональный AI-агент</title>
+<style>
+  :root {
+    --bg: #eef0f5;
+    --paper: #f8f8fb;
+    --card: #ffffff;
+    --ink: #171a26;
+    --muted: #5b6173;
+    --soft: #8a90a2;
+    --line: #e1e3ec;
+    --accent: #5546d8;
+    --accent-ink: #3d2fbf;
+    --accent-soft: #ecebfc;
+    --ok: #12806a;
+    --ok-soft: #e2f3ee;
+    --warn: #b9541b;
+    --warn-soft: #fbeee5;
+    --dark: #1b1d29;
+    --dark-2: #242736;
+    --dark-line: #34384a;
+    --dark-ink: #e7e8ef;
+    --dark-muted: #9aa0b4;
+    --radius: 14px;
+    --font: "Segoe UI", "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Code", "Consolas", "SFMono-Regular", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+
+  /* ── Сцена 1280×720, масштабируется под окно ── */
+  .viewport { position: fixed; inset: 0 0 80px 0; overflow: hidden; }
+  .stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1280px; height: 720px;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+    background: var(--paper);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(23, 26, 38, .14), 0 2px 6px rgba(23, 26, 38, .06);
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute; inset: 0;
+    padding: 56px 72px 48px;
+    display: flex; flex-direction: column;
+    opacity: 0; visibility: hidden;
+    transform: translateX(24px);
+    transition: opacity .35s ease, transform .35s ease, visibility 0s linear .35s;
+  }
+  .slide.active { opacity: 1; visibility: visible; transform: none; transition: opacity .35s ease, transform .35s ease; }
+  .slide.before { transform: translateX(-24px); }
+
+  .kicker {
+    font-size: 15px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 12px;
+  }
+  h1, h2 { margin: 0; font-weight: 650; letter-spacing: -.01em; }
+  h1 { font-size: 50px; line-height: 1.12; }
+  h2 { font-size: 40px; line-height: 1.15; }
+  .lead { font-size: 21px; line-height: 1.5; color: var(--muted); margin: 18px 0 0; max-width: 980px; }
+  .slide-num { position: absolute; right: 72px; bottom: 26px; font-size: 13px; color: var(--soft); }
+  .brand { position: absolute; left: 72px; bottom: 26px; font-size: 13px; color: var(--soft); }
+  .note { font-size: 13px; color: var(--soft); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 20px; font-weight: 650; }
+  .card p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--muted); }
+
+  /* ── 1. Обложка ── */
+  .cover { display: grid; grid-template-columns: 1.08fr .92fr; gap: 44px; align-items: center; flex: 1; }
+  .cover h1 { font-size: 44px; }
+  .facts { display: flex; gap: 14px; margin-top: 34px; }
+  .fact { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; min-width: 0; }
+  .fact b { display: block; font-size: 17px; margin-bottom: 4px; }
+  .fact span { font-size: 14px; color: var(--muted); line-height: 1.4; }
+
+  .mock {
+    background: var(--dark); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 18px 40px rgba(23, 26, 38, .25); color: var(--dark-ink);
+    font-size: 13px;
+  }
+  .mock-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #15171f; }
+  .mock-bar i { width: 10px; height: 10px; border-radius: 50%; background: #3a3e52; display: block; }
+  .mock-bar span { margin-left: 8px; color: var(--dark-muted); font-size: 12px; }
+  .mock-body { display: grid; grid-template-columns: 130px 1fr 170px; min-height: 360px; }
+  .mock-side { background: #1f2230; border-right: 1px solid var(--dark-line); padding: 12px 10px; }
+  .mock-chat { padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .mock-plan { border-left: 1px solid var(--dark-line); padding: 14px 12px; background: #1f2230; }
+  .bar { height: 9px; border-radius: 5px; background: #33374a; }
+  .side-item { height: 26px; border-radius: 7px; background: #2b2f40; margin-bottom: 8px; }
+  .side-item.on { background: #3a3480; }
+  .bubble { border-radius: 10px; padding: 10px 12px; line-height: 1.45; max-width: 92%; }
+  .bubble.user { align-self: flex-end; background: #3a3480; }
+  .bubble.agent { background: var(--dark-2); border: 1px solid var(--dark-line); }
+  .tool-line { font-family: var(--mono); font-size: 11.5px; color: var(--dark-muted); padding: 6px 10px; border-left: 2px solid #4b4f66; }
+  .plan-title { font-size: 12px; color: var(--dark-muted); margin-bottom: 10px; }
+  .plan-step { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 9px; font-size: 12px; line-height: 1.35; }
+  .plan-step .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #4b4f66; flex: none; margin-top: 1px; }
+  .plan-step.done .dot { background: #1f9a80; border-color: #1f9a80; }
+  .plan-step.doing .dot { border-color: #8b7ff0; box-shadow: 0 0 0 3px rgba(139, 127, 240, .25); }
+  .plan-step.todo { color: var(--dark-muted); }
+
+  /* ── 2. Проблема ── */
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 36px; flex: 1; min-height: 0; }
+  .three .card { padding: 28px 30px; display: flex; flex-direction: column; }
+  .three .card h3 { font-size: 23px; line-height: 1.3; margin-bottom: 12px; }
+  .three .card > p { font-size: 17.5px; line-height: 1.6; }
+  .num { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 14px; display: block; }
+  .solve { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); }
+  .solve small { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ok); margin-bottom: 8px; }
+  .solve p { color: var(--ink); font-size: 18px; line-height: 1.55; }
+
+  /* ── Общие интерактивные элементы ── */
+  .pick {
+    border: 1px solid var(--line); background: var(--card); border-radius: 12px;
+    padding: 14px 16px; text-align: left; cursor: pointer;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+  }
+  .pick:hover { border-color: #c9c5f4; }
+  .pick[aria-pressed="true"], .pick[aria-selected="true"] {
+    border-color: var(--accent); background: var(--accent-soft);
+    box-shadow: 0 0 0 1px var(--accent) inset;
+  }
+  .pick:focus-visible, .seg button:focus-visible, .node:focus-visible { outline: 3px solid #b3abf5; outline-offset: 2px; }
+  .detail {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 26px 28px;
+  }
+  .detail h3 { margin: 0 0 12px; font-size: 24px; }
+  .detail p { margin: 0 0 12px; font-size: 17px; line-height: 1.6; color: var(--muted); }
+  .detail p:last-child { margin-bottom: 0; }
+  .detail .tagline { font-size: 14px; color: var(--accent-ink); font-weight: 600; margin-bottom: 10px; }
+  .hint { font-size: 13px; color: var(--soft); margin-top: 10px; }
+
+  /* ── 3. Возможности ── */
+  .caps { display: grid; grid-template-columns: 1.15fr .85fr; gap: 28px; margin-top: 30px; flex: 1; min-height: 0; align-items: start; }
+  .cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-content: start; }
+  .cap-grid .pick b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .cap-grid .pick span { font-size: 13.5px; color: var(--muted); line-height: 1.4; display: block; }
+  .cap-detail ul { margin: 6px 0 0; padding-left: 20px; }
+  .cap-detail li { font-size: 16px; line-height: 1.55; color: var(--muted); margin-bottom: 6px; }
+
+  /* ── 4. План и шаги ── */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 32px; }
+  .steps .pick { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; }
+  .steps .pick small { font-size: 13px; color: var(--accent); font-weight: 700; }
+  .steps .pick b { font-size: 18px; }
+  .step-row { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; margin-top: 18px; flex: 1; min-height: 0; }
+  .planbox {
+    background: var(--dark); color: var(--dark-ink); border-radius: var(--radius); padding: 20px 22px;
+    box-shadow: 0 14px 30px rgba(23, 26, 38, .18); font-size: 14px;
+  }
+  .planbox .plan-title { font-size: 13px; margin-bottom: 14px; display: flex; justify-content: space-between; }
+  .planbox .plan-step { font-size: 14px; margin-bottom: 11px; }
+  .planbox .plan-step .dot { width: 16px; height: 16px; }
+  .planbox .calls { margin: -4px 0 10px 24px; display: flex; flex-direction: column; gap: 4px; }
+  .planbox .call { font-family: var(--mono); font-size: 12px; color: var(--dark-muted); }
+  .planbox .empty { color: var(--dark-muted); line-height: 1.5; }
+  .planbox .report { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--dark-line); border-radius: 10px; background: var(--dark-2); }
+  .planbox .report b { display: block; margin-bottom: 8px; font-weight: 600; }
+  .planbox .report span { display: inline-block; font-size: 12px; border: 1px solid #4b4f66; border-radius: 7px; padding: 3px 9px; margin-right: 6px; }
+  .band { margin-top: 16px; background: var(--ok-soft); border-radius: var(--radius); padding: 16px 22px; display: flex; gap: 18px; align-items: baseline; }
+  .band b { font-size: 15px; color: var(--ok); white-space: nowrap; }
+  .band p { margin: 0; font-size: 15.5px; line-height: 1.55; color: #2c4a43; }
+
+  /* ── 5. Python ── */
+  .py { display: grid; grid-template-columns: .95fr 1.05fr; gap: 36px; margin-top: 30px; flex: 1; min-height: 0; }
+  .facts-list { list-style: none; margin: 0; padding: 0; }
+  .facts-list li { position: relative; padding-left: 26px; margin-bottom: 16px; font-size: 17.5px; line-height: 1.55; color: var(--muted); }
+  .facts-list li::before { content: ""; position: absolute; left: 2px; top: 10px; width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+  .facts-list li b { color: var(--ink); font-weight: 600; }
+  .demo { display: flex; flex-direction: column; gap: 12px; }
+  .demo-head { display: flex; justify-content: space-between; align-items: center; }
+  .demo-head span { font-size: 13px; color: var(--soft); }
+  .btn {
+    border: 0; border-radius: 10px; padding: 10px 18px; cursor: pointer;
+    background: var(--accent); color: #fff; font-weight: 600; font-size: 15px;
+  }
+  .btn:hover { background: var(--accent-ink); }
+  .btn.ghost { background: transparent; color: var(--dark-ink); border: 1px solid #4b4f66; padding: 6px 12px; font-size: 13px; font-weight: 500; }
+  .btn.ghost:hover { background: #2d3142; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .live {
+    background: var(--dark); color: var(--dark-ink); border-radius: 14px; padding: 18px 20px;
+    border-left: 3px solid #8b7ff0; min-height: 300px; display: flex; flex-direction: column;
+  }
+  .live-head { display: flex; align-items: center; gap: 10px; font-size: 14px; flex-wrap: wrap; }
+  .live-head b { font-weight: 600; }
+  .live-stage { color: var(--dark-muted); }
+  .live-time { color: var(--dark-muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .live-head .btn.ghost { margin-left: auto; }
+  .live-out {
+    margin: 14px 0 0; padding: 12px 14px; background: #14161e; border: 1px solid var(--dark-line); border-radius: 10px;
+    font-family: var(--mono); font-size: 13px; line-height: 1.6; min-height: 150px; white-space: pre-wrap; color: #c9cce0;
+  }
+  .live-result { margin-top: 14px; font-size: 14px; display: none; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .live-result.show { display: flex; }
+  .file-chip { font-family: var(--mono); font-size: 12.5px; background: #2b2f40; border: 1px solid var(--dark-line); border-radius: 8px; padding: 4px 10px; }
+  .live-idle { color: var(--dark-muted); font-size: 14px; margin-top: 14px; }
+
+  /* ── Схемы ── */
+  .node { cursor: pointer; }
+  .node rect { fill: #fff; stroke: #cfd2de; stroke-width: 1.5; transition: fill .15s, stroke .15s; }
+  .node:hover rect { stroke: #b3abf5; }
+  .node.on rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+  .node text { font-family: var(--font); fill: var(--ink); }
+  .node .t1 { font-size: 16px; font-weight: 650; }
+  .node .t2 { font-size: 12.5px; fill: var(--muted); }
+  .edge { stroke: #9aa0b4; stroke-width: 2; fill: none; }
+  .edge-label { font-family: var(--font); font-size: 12.5px; fill: var(--muted); }
+  .zone { fill: none; stroke: #b9bdcc; stroke-dasharray: 6 5; stroke-width: 1.5; }
+  .zone-label { font-family: var(--font); font-size: 12px; fill: var(--soft); letter-spacing: .04em; }
+
+  /* ── 6. Архитектура ── */
+  .arch { display: grid; grid-template-columns: 1.42fr .88fr; gap: 26px; margin-top: 20px; flex: 1; min-height: 0; align-items: start; }
+  .arch svg { width: 100%; height: auto; display: block; }
+  .arch-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .arch .seg { align-self: flex-start; }
+  .arch .detail { padding: 20px 22px; }
+  .arch .detail h3 { font-size: 21px; margin-bottom: 8px; }
+  .arch .detail p { font-size: 15px; line-height: 1.55; margin-bottom: 9px; }
+  .server-zone { fill: #f4f3fd; stroke: #b3abf5; stroke-dasharray: 6 5; stroke-width: 1.5; transition: stroke .15s; }
+  .zone-hit { cursor: pointer; }
+  .zone-hit:hover .server-zone { stroke: var(--accent); }
+  .zone-hit.on .server-zone { stroke: var(--accent); stroke-dasharray: none; stroke-width: 2; }
+  .zone-hit:focus-visible { outline: 3px solid #b3abf5; outline-offset: 2px; }
+  .node.small .t1 { font-size: 14px; }
+  .node.small .t2 { font-size: 11.5px; }
+  .node.idea rect { fill: #fff; stroke: #b3abf5; stroke-dasharray: 5 4; }
+  .node.idea:hover rect { stroke: var(--accent); }
+  .node.idea.on rect { fill: var(--accent-soft); stroke: var(--accent); stroke-dasharray: none; }
+  .node.idea .t1 { font-size: 13.5px; font-weight: 600; fill: var(--accent-ink); }
+  .node.idea .t2 { fill: var(--accent-ink); opacity: .8; }
+  .edge.dash { stroke-dasharray: 5 4; }
+  .off { display: none; }
+  .status { display: inline-block; font-size: 12.5px; font-weight: 700; border-radius: 7px; padding: 3px 9px; margin-bottom: 10px; }
+  .status.now { background: var(--ok-soft); color: var(--ok); }
+  .status.dev { background: var(--warn-soft); color: var(--warn); }
+  .ideas { list-style: none; margin: 4px 0 0; padding: 0; }
+  .ideas li { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink); }
+  .ideas li:last-child { border-bottom: 0; }
+  .ideas li span { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .ideas li span.now { color: var(--ok); }
+  .ideas li span.dev { color: var(--warn); }
+
+  /* ── 7. Системы компании ── */
+  .pk { display: grid; grid-template-columns: .74fr 1.26fr; gap: 24px; margin-top: 24px; flex: 1; min-height: 0; }
+  .pk-list { display: flex; flex-direction: column; gap: 9px; }
+  .pk-list .pick { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 13px 16px; }
+  .pk-list .pick b { font-size: 17px; }
+  .pk-list .pick span { font-size: 13.5px; color: var(--muted); white-space: nowrap; }
+  .pk .detail { padding: 22px 26px; }
+  .pk .detail h3 { font-size: 22px; margin-bottom: 8px; }
+  .pk .detail > p { font-size: 15.5px; line-height: 1.55; margin-bottom: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 14px; }
+  .chips span { font-size: 13px; border: 1px solid #d6d2f7; background: var(--accent-soft); color: var(--accent-ink); border-radius: 8px; padding: 3px 10px; }
+  .kv { display: grid; grid-template-columns: 112px 1fr; gap: 8px 14px; margin: 0; font-size: 14.5px; line-height: 1.5; }
+  .kv dt { color: var(--soft); font-weight: 600; }
+  .kv dd { margin: 0; color: var(--ink); }
+
+  /* ── 8. Безопасность ── */
+  .sec { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px; flex: 1; min-height: 0; }
+  .seg { display: inline-flex; background: #e6e7ef; border-radius: 12px; padding: 4px; gap: 4px; }
+  .seg button { border: 0; background: transparent; padding: 9px 16px; border-radius: 9px; cursor: pointer; font-size: 15px; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(23, 26, 38, .12); }
+  .mode-box { margin-top: 16px; }
+  .meter { display: flex; gap: 6px; margin: 4px 0 16px; }
+  .meter i { flex: 1; height: 6px; border-radius: 3px; background: #e1e3ec; display: block; }
+  .meter i.on { background: var(--accent); }
+  .always h3 { margin: 0 0 14px; font-size: 18px; }
+  .always ul { list-style: none; margin: 0; padding: 0; }
+  .always li { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; line-height: 1.5; color: var(--muted); }
+  .always li:last-child { border-bottom: 0; }
+  .always li::before { content: ""; flex: none; width: 18px; height: 18px; margin-top: 2px; border-radius: 50%; background: var(--ok-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.2l2.6 2.6L13 6.4' fill='none' stroke='%2312806a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat; }
+
+  /* ── 8. Модели ── */
+  .models { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px; flex: 1; min-height: 0; }
+  .flow { margin-top: 18px; display: flex; align-items: center; gap: 12px; }
+  .flow .box { border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 12px 14px; font-size: 14.5px; text-align: center; flex: 1; line-height: 1.35; }
+  .flow .box.hl { border-color: var(--accent); background: var(--accent-soft); }
+  .flow .arrow { color: var(--soft); font-size: 20px; }
+  .models > .detail { display: flex; flex-direction: column; }
+  .gets { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .gets > div { border-radius: 10px; padding: 14px 16px; background: var(--ok-soft); }
+  .gets > div:last-child { background: var(--warn-soft); }
+  .gets small { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ok); margin-bottom: 6px; }
+  .gets > div:last-child small { color: var(--warn); }
+  .gets p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--ink); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid2 .card { padding: 18px 20px; }
+  .grid2 .card h3 { font-size: 16.5px; margin-bottom: 6px; }
+  .grid2 .card p { font-size: 14.5px; }
+
+  /* ── 9. Внедрение ── */
+  .four { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  .four .card { padding: 18px 22px; display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; align-content: start; }
+  .four .card h3 { font-size: 17.5px; margin: 2px 0 6px; }
+  .four .card p { font-size: 14.5px; grid-column: 2; }
+  .big { font-size: 30px; font-weight: 700; color: var(--accent); line-height: 1; grid-row: span 2; }
+  .req { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .req .card { background: transparent; border-style: dashed; }
+  .req .card h3 { font-size: 15px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .req .card p { color: var(--ink); font-size: 16px; }
+
+  /* ── 10. Развитие ── */
+  .road { display: grid; grid-template-columns: 1.05fr .95fr; gap: 28px; margin-top: 28px; flex: 1; min-height: 0; }
+  .road > div:last-child { display: flex; flex-direction: column; }
+  .road > div:last-child .detail { flex: 1; }
+  .timeline { display: flex; flex-direction: column; gap: 10px; }
+  .timeline .pick { flex: 1; display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: center; padding: 13px 16px; }
+  .timeline .pick small { font-size: 12.5px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+  .timeline .pick b { font-size: 16.5px; font-weight: 600; }
+  .timeline .pick.now small { color: var(--ok); }
+  .it { margin-top: 14px; padding: 14px 16px; background: var(--warn-soft); border-radius: 10px; font-size: 15px; line-height: 1.5; color: #6b3615; }
+  .it b { color: var(--warn); }
+  .pilot { margin-top: 16px; padding: 18px 20px; border-radius: var(--radius); background: var(--accent); color: #fff; }
+  .pilot h3 { margin: 0 0 8px; font-size: 18px; }
+  .pilot p { margin: 0; font-size: 15.5px; line-height: 1.55; color: #e9e7ff; }
+
+  /* ── Управление ── */
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 80px;
+    display: flex; align-items: center; justify-content: center; gap: 18px;
+    color: var(--muted); font-size: 14px; user-select: none;
+  }
+  .controls .nav {
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid #cfd2de; background: var(--card);
+    cursor: pointer; display: grid; place-items: center; font-size: 18px; line-height: 1;
+  }
+  .controls .nav:hover { border-color: var(--accent); color: var(--accent); }
+  .controls .nav:disabled { opacity: .4; cursor: default; }
+  .dots { display: flex; gap: 8px; }
+  .dots button { width: 10px; height: 10px; border-radius: 50%; border: 0; padding: 0; background: #c6c9d6; cursor: pointer; }
+  .dots button[aria-current="true"] { background: var(--accent); width: 26px; border-radius: 5px; }
+  .counter { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; }
+  .keys { position: fixed; right: 18px; bottom: 18px; font-size: 12px; color: var(--soft); }
+  .keys kbd { font-family: var(--font); background: var(--card); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; }
+
+  /* ── Проект: внизу слева, на уровне управления ── */
+  .project {
+    position: fixed; left: 18px; bottom: 8px; height: 64px;
+    display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; line-height: 1.35;
+  }
+  .project img { width: 64px; height: 64px; display: block; flex: none; }
+  .project b { display: block; font-size: 15px; color: var(--ink); font-weight: 650; }
+  .project a { color: var(--accent-ink); text-decoration: none; }
+  .project a:hover { text-decoration: underline; }
+  .project a:focus-visible { outline: 3px solid #b3abf5; outline-offset: 2px; border-radius: 3px; }
+
+  @media (max-width: 1100px) { .keys { display: none; } }
+  @media (max-width: 1010px) { .project .meta { display: none; } }
+  @media (max-width: 760px) { .project { display: none; } }
+
+  /* ── Печать: по слайду на страницу ── */
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    body { overflow: visible; background: #fff; }
+    .viewport { position: static; display: block; overflow: visible; }
+    .stage { position: static; transform: none !important; box-shadow: none; border-radius: 0; width: 1280px; height: auto; overflow: visible; background: none; }
+    .slide { position: relative; height: 720px; opacity: 1; visibility: visible; transform: none; page-break-after: always; break-after: page; background: var(--paper); }
+    .controls, .keys, .project { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="viewport">
+  <main class="stage" id="stage">
+
+    <!-- 1 -->
+    <section class="slide" data-title="Персональный AI-агент">
+      <div class="cover">
+        <div>
+          <p class="kicker">Персональный AI-агент</p>
+          <h1>Помощник сотрудника для работы с документами, данными и внутренними системами</h1>
+          <p class="lead">Агент открывается в браузере, работает с выбранной компанией моделью и хранит данные на компьютере сотрудника.</p>
+          <div class="facts">
+            <div class="fact"><b>Без серверной части</b><span>набор статических файлов на внутреннем веб-сервере</span></div>
+            <div class="fact"><b>Любая модель</b><span>с API в формате OpenAI, облачная или в контуре компании</span></div>
+            <div class="fact"><b>38 релизов</b><span>более 4 200 автоматических проверок</span></div>
+          </div>
+        </div>
+        <div class="mock" aria-hidden="true">
+          <div class="mock-bar"><i></i><i></i><i></i><span>Агент · Сводка продаж</span></div>
+          <div class="mock-body">
+            <div class="mock-side">
+              <div class="side-item on"></div><div class="side-item"></div><div class="side-item"></div><div class="side-item"></div>
+            </div>
+            <div class="mock-chat">
+              <div class="bubble user">Сравни продажи по регионам за II и III квартал и подготовь записку для директора</div>
+              <div class="tool-line">read_file · продажи_2026.xlsx</div>
+              <div class="tool-line">sandbox_run · сводная по регионам</div>
+              <div class="bubble agent">Рост в шести регионах из девяти. Сильнее всего вырос Северо-Запад: +18%. Записка и график приложены.</div>
+              <div class="bar" style="width:70%"></div>
+              <div class="bar" style="width:52%"></div>
+            </div>
+            <div class="mock-plan">
+              <div class="plan-title">План · 3 из 4</div>
+              <div class="plan-step done"><span class="dot"></span>Прочитать выгрузку</div>
+              <div class="plan-step done"><span class="dot"></span>Посчитать сводную</div>
+              <div class="plan-step done"><span class="dot"></span>Построить график</div>
+              <div class="plan-step doing"><span class="dot"></span>Собрать записку в Word</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-title="Где теряется время">
+      <p class="kicker">Задача</p>
+      <h2>Где сотрудник теряет время</h2>
+      <div class="three">
+        <div class="card">
+          <span class="num">01</span>
+          <h3>Данные лежат в разных системах</h3>
+          <p>Вики, таблицы, внутренние сервисы и почта существуют отдельно. Сотрудник переносит данные между ними вручную и собирает из них отчёты.</p>
+          <div class="solve"><small>Как решает агент</small><p>Читает почту, вики, SAP, Naumen, таблицы и внутренние сервисы и собирает из них отчёт или записку.</p></div>
+        </div>
+        <div class="card">
+          <span class="num">02</span>
+          <h3>Общие чат-боты не видят внутренний контур</h3>
+          <p>Им недоступны вики, внутренние сайты и сервисы с доменной авторизацией. Всё, что сотрудник вставил в окно чата, уходит стороннему сервису.</p>
+          <div class="solve"><small>Как решает агент</small><p>Обращается к внутренним системам через программу на компьютере сотрудника, с его правами.</p></div>
+        </div>
+        <div class="card">
+          <span class="num">03</span>
+          <h3>Корпоративная платформа требует проекта</h3>
+          <p>Серверы, интеграции, согласования, обучение. До первой пользы для сотрудника проходят месяцы.</p>
+          <div class="solve"><small>Как решает агент</small><p>Для старта нужны адрес страницы и доступ к модели. Отдельный сервер не нужен.</p></div>
+        </div>
+      </div>
+      <span class="brand">Персональный AI-агент</span>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" data-title="Возможности">
+      <p class="kicker">Возможности</p>
+      <h2>Что умеет агент</h2>
+      <div class="caps">
+        <div class="cap-grid" role="group" aria-label="Возможности">
+          <button class="pick" data-cap="chat" aria-pressed="true"><b>Диалог с моделью</b><span>чаты, папки, голос, поиск</span></button>
+          <button class="pick" data-cap="skills" aria-pressed="false"><b>Навыки и инструменты</b><span>72 инструмента</span></button>
+          <button class="pick" data-cap="files" aria-pressed="false"><b>Файлы</b><span>Word, Excel, PDF и другие</span></button>
+          <button class="pick" data-cap="ext" aria-pressed="false"><b>Системы компании</b><span>SAP, Naumen, Exchange, вики</span></button>
+          <button class="pick" data-cap="api" aria-pressed="false"><b>Импорт API</b><span>OpenAPI, Postman, WSDL</span></button>
+          <button class="pick" data-cap="mcp" aria-pressed="false"><b>MCP-серверы</b><span>инструменты извне</span></button>
+          <button class="pick" data-cap="search" aria-pressed="false"><b>Поиск в интернете</b><span>пять поисковых служб</span></button>
+          <button class="pick" data-cap="notes" aria-pressed="false"><b>Заметки и напоминания</b><span>теги, сроки</span></button>
+          <button class="pick" data-cap="python" aria-pressed="false"><b>Расчёты на Python</b><span>pandas, графики</span></button>
+        </div>
+        <div class="detail cap-detail" id="cap-detail" aria-live="polite"></div>
+      </div>
+      <span class="brand">Нажмите на возможность, чтобы увидеть подробности</span>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-title="План, шаги, отчёт">
+      <p class="kicker">Большие задачи</p>
+      <h2>План, шаги и отчёт о выполнении</h2>
+      <div class="steps" role="group" aria-label="Этапы работы">
+        <button class="pick" data-step="0" aria-pressed="true"><small>Шаг 1</small><b>Запрос</b></button>
+        <button class="pick" data-step="1" aria-pressed="false"><small>Шаг 2</small><b>План</b></button>
+        <button class="pick" data-step="2" aria-pressed="false"><small>Шаг 3</small><b>Выполнение</b></button>
+        <button class="pick" data-step="3" aria-pressed="false"><small>Шаг 4</small><b>Отчёт</b></button>
+      </div>
+      <div class="step-row">
+        <div class="detail" id="step-detail" aria-live="polite"></div>
+        <div class="planbox" id="plan-mock" aria-hidden="true"></div>
+      </div>
+      <div class="band">
+        <b>Если что-то пошло не так</b>
+        <p>Если вкладку закрыли или браузер упал, работу можно продолжить с места остановки. Пределы по шагам, времени и вызовам останавливают работу, отчёт получается и в этом случае. Когда контекст заполнен, работа продолжается в новом чате с передаточной запиской.</p>
+      </div>
+      <span class="brand">Нажмите на шаг</span>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-title="Расчёты на Python">
+      <p class="kicker">Вычисления</p>
+      <h2>Расчёты на Python без установки</h2>
+      <div class="py">
+        <ul class="facts-list">
+          <li><b>Python работает в браузере.</b> Код выполняется в изолированном кадре: без сети и без доступа к данным приложения.</li>
+          <li><b>pandas, numpy, matplotlib, openpyxl.</b> Сводные таблицы, графики, работа с Excel.</li>
+          <li><b>Результат приходит файлами.</b> Таблицы и картинки скачиваются из переписки, итог расчёта агент использует в ответе.</li>
+          <li><b>Ход виден по мере работы.</b> Этап, время, последние строки вывода. Задачу можно остановить.</li>
+          <li><b>История запусков.</b> Код, вывод, ошибки с трассировкой и лог одним файлом для разбора.</li>
+        </ul>
+        <div class="demo">
+          <div class="demo-head">
+            <span>Пример: так задача выглядит в переписке</span>
+            <button class="btn" id="py-run">Запустить пример</button>
+          </div>
+          <div class="live" id="py-live">
+            <div class="live-head">
+              <b>Задача на Python</b>
+              <span class="live-stage" id="py-stage">Не запущена</span>
+              <span class="live-time" id="py-time"></span>
+              <button class="btn ghost" id="py-stop" disabled>Остановить</button>
+            </div>
+            <div class="live-out" id="py-out"></div>
+            <div class="live-result" id="py-result"></div>
+          </div>
+        </div>
+      </div>
+      <span class="brand">Персональный AI-агент</span>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" data-title="Архитектура">
+      <p class="kicker">Архитектура</p>
+      <h2>Статические файлы на внутреннем веб-сервере</h2>
+      <div class="arch">
+        <svg id="arch-svg" viewBox="0 0 700 446" role="group" aria-label="Схема архитектуры">
+          <defs>
+            <marker id="arch-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#9aa0b4"/>
+            </marker>
+          </defs>
+
+          <g class="zone-hit on" data-node="server" tabindex="0" role="button" aria-label="Веб-сервер компании">
+            <rect class="server-zone" x="8" y="8" width="684" height="180" rx="14"/>
+            <text class="zone-label" x="22" y="28">ВНУТРЕННИЙ ВЕБ-СЕРВЕР КОМПАНИИ · СТАТИЧЕСКИЕ ФАЙЛЫ</text>
+            <text class="zone-label" x="678" y="28" text-anchor="end">ЛЮБОЙ ВЕБ-СЕРВЕР С HTTPS</text>
+          </g>
+          <g class="node small" data-node="page" tabindex="0" role="button" aria-label="Страница агента">
+            <rect x="18" y="40" width="126" height="64" rx="10"/>
+            <text class="t1" x="81" y="66" text-anchor="middle">Страница агента</text>
+            <text class="t2" x="81" y="86" text-anchor="middle">app.min.js · 2,4 МБ</text>
+          </g>
+          <g class="node small" data-node="doc" tabindex="0" role="button" aria-label="Руководство">
+            <rect x="152" y="40" width="126" height="64" rx="10"/>
+            <text class="t1" x="215" y="66" text-anchor="middle">Руководство</text>
+            <text class="t2" x="215" y="86" text-anchor="middle">doc/user · 4 МБ</text>
+          </g>
+          <g class="node small" data-node="content" tabindex="0" role="button" aria-label="Пакеты навыков">
+            <rect x="286" y="40" width="126" height="64" rx="10"/>
+            <text class="t1" x="349" y="66" text-anchor="middle">Пакеты навыков</text>
+            <text class="t2" x="349" y="86" text-anchor="middle">content · 3,7 МБ</text>
+          </g>
+          <g class="node small" data-node="python" tabindex="0" role="button" aria-label="Python">
+            <rect x="420" y="40" width="126" height="64" rx="10"/>
+            <text class="t1" x="483" y="66" text-anchor="middle">Python</text>
+            <text class="t2" x="483" y="86" text-anchor="middle">библиотеки · 30 МБ</text>
+          </g>
+          <g class="node small" data-node="proxyfiles" tabindex="0" role="button" aria-label="Файлы локального хоста">
+            <rect x="554" y="40" width="126" height="64" rx="10"/>
+            <text class="t1" x="617" y="66" text-anchor="middle">Локальный хост</text>
+            <text class="t2" x="617" y="86" text-anchor="middle">proxy · 6 МБ</text>
+          </g>
+
+          <g class="arch-now">
+            <g class="node idea" data-node="more" tabindex="0" role="button" aria-label="Что ещё можно разместить">
+              <rect x="18" y="114" width="662" height="62" rx="10"/>
+              <text class="t1" x="349" y="141" text-anchor="middle">+ Что ещё можно разместить на этом сервере</text>
+              <text class="t2" x="349" y="161" text-anchor="middle">шесть предложений: нажмите, чтобы посмотреть</text>
+            </g>
+          </g>
+          <g class="arch-more off">
+            <g class="node idea" data-node="api" tabindex="0" role="button" aria-label="Описания API сервисов">
+              <rect x="18" y="114" width="216" height="28" rx="8"/>
+              <text class="t1" x="126" y="133" text-anchor="middle">Описания API сервисов</text>
+            </g>
+            <g class="node idea" data-node="pkgs" tabindex="0" role="button" aria-label="Пакеты навыков компании">
+              <rect x="241" y="114" width="216" height="28" rx="8"/>
+              <text class="t1" x="349" y="133" text-anchor="middle">Пакеты навыков компании</text>
+            </g>
+            <g class="node idea" data-node="kits" tabindex="0" role="button" aria-label="Наборы для команд">
+              <rect x="464" y="114" width="216" height="28" rx="8"/>
+              <text class="t1" x="572" y="133" text-anchor="middle">Наборы для команд</text>
+            </g>
+            <g class="node idea" data-node="preset" tabindex="0" role="button" aria-label="Настройки компании">
+              <rect x="18" y="148" width="216" height="28" rx="8"/>
+              <text class="t1" x="126" y="167" text-anchor="middle">Настройки компании</text>
+            </g>
+            <g class="node idea" data-node="dirs" tabindex="0" role="button" aria-label="Справочники серверов">
+              <rect x="241" y="148" width="216" height="28" rx="8"/>
+              <text class="t1" x="349" y="167" text-anchor="middle">Справочники серверов</text>
+            </g>
+            <g class="node idea" data-node="learn" tabindex="0" role="button" aria-label="Обучение и новости">
+              <rect x="464" y="148" width="216" height="28" rx="8"/>
+              <text class="t1" x="572" y="167" text-anchor="middle">Обучение и новости</text>
+            </g>
+          </g>
+
+          <path class="edge" d="M150 188 V 244" marker-end="url(#arch-arrow)"/>
+          <text class="edge-label" x="160" y="214">файлы по HTTPS, только чтение</text>
+          <path class="edge dash" d="M600 188 V 244" marker-end="url(#arch-arrow)"/>
+          <text class="edge-label" x="590" y="214" text-anchor="end">комплект скачивается один раз</text>
+
+          <rect class="zone" x="8" y="230" width="684" height="112" rx="14"/>
+          <text class="zone-label" x="381" y="336" text-anchor="middle">КОМПЬЮТЕР СОТРУДНИКА</text>
+          <g class="node" data-node="browser" tabindex="0" role="button" aria-label="Агент в браузере">
+            <rect x="22" y="246" width="300" height="72" rx="12"/>
+            <text class="t1" x="172" y="272" text-anchor="middle">Агент в браузере</text>
+            <text class="t2" x="172" y="291" text-anchor="middle">чаты, навыки, память, Python</text>
+            <text class="t2" x="172" y="308" text-anchor="middle">данные остаются у сотрудника</text>
+          </g>
+          <path class="edge" d="M324 282 H 438" marker-start="url(#arch-arrow)" marker-end="url(#arch-arrow)"/>
+          <text class="edge-label" x="381" y="274" text-anchor="middle">сопряжение</text>
+          <text class="edge-label" x="381" y="300" text-anchor="middle">по токену</text>
+          <g class="node" data-node="host" tabindex="0" role="button" aria-label="Локальный хост">
+            <rect x="440" y="246" width="238" height="72" rx="12"/>
+            <text class="t1" x="559" y="272" text-anchor="middle">Локальный хост</text>
+            <text class="t2" x="559" y="291" text-anchor="middle">Java 8 или Node.js</text>
+            <text class="t2" x="559" y="308" text-anchor="middle">только 127.0.0.1</text>
+          </g>
+
+          <path class="edge" d="M140 320 V 364" marker-start="url(#arch-arrow)" marker-end="url(#arch-arrow)"/>
+          <text class="edge-label" x="150" y="358">HTTPS, API OpenAI</text>
+          <g class="node" data-node="model" tabindex="0" role="button" aria-label="Модель">
+            <rect x="22" y="366" width="236" height="68" rx="12"/>
+            <text class="t1" x="140" y="394" text-anchor="middle">Модель</text>
+            <text class="t2" x="140" y="414" text-anchor="middle">облако или сервер компании</text>
+          </g>
+
+          <rect class="zone" x="300" y="362" width="392" height="80" rx="14"/>
+          <text class="zone-label" x="314" y="432">ВНУТРЕННЯЯ СЕТЬ</text>
+          <path class="edge" d="M559 320 V 376" marker-end="url(#arch-arrow)"/>
+          <text class="edge-label" x="569" y="356">от имени сотрудника</text>
+          <g class="node" data-node="services" tabindex="0" role="button" aria-label="Внутренние системы">
+            <rect x="440" y="378" width="238" height="56" rx="12"/>
+            <text class="t1" x="559" y="401" text-anchor="middle">Внутренние системы</text>
+            <text class="t2" x="559" y="421" text-anchor="middle">SAP, Naumen, Exchange, вики, MCP</text>
+          </g>
+        </svg>
+        <div class="arch-side">
+          <div class="seg" role="group" aria-label="Что показать на сервере">
+            <button data-arch="now" aria-pressed="true">Что лежит сейчас</button>
+            <button data-arch="more" aria-pressed="false">Что ещё разместить</button>
+          </div>
+          <div class="detail" id="arch-detail" aria-live="polite"></div>
+        </div>
+      </div>
+      <span class="brand">Нажмите на элемент схемы</span>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" data-title="Системы компании">
+      <p class="kicker">Системы компании</p>
+      <h2>Готовые навыки для рабочих систем</h2>
+      <div class="pk">
+        <div class="pk-list" role="group" aria-label="Пакеты навыков">
+          <button class="pick" data-pkg="sap" aria-pressed="true"><b>SAP ADT</b><span>6 навыков</span></button>
+          <button class="pick" data-pkg="naumen" aria-pressed="false"><b>Naumen Service Desk</b><span>3 навыка</span></button>
+          <button class="pick" data-pkg="exchange" aria-pressed="false"><b>Microsoft Exchange</b><span>5 навыков</span></button>
+          <button class="pick" data-pkg="confluence" aria-pressed="false"><b>Confluence</b><span>3 навыка</span></button>
+          <button class="pick" data-pkg="xwiki" aria-pressed="false"><b>xWiki</b><span>4 навыка</span></button>
+        </div>
+        <div class="detail" id="pkg-detail" aria-live="polite"></div>
+      </div>
+      <div class="band">
+        <b>Как ставятся</b>
+        <p>«📚 Из поставки» → описание пакета → нужные навыки → «Установить». Пакет приходит одним архивом, навыки и инструменты подписаны разработчиком: проверять код не нужно, изменить его нельзя. Справочник серверов видят только инструменты пакета.</p>
+      </div>
+      <span class="brand">Нажмите на пакет</span>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" data-title="Безопасность">
+      <p class="kicker">Безопасность</p>
+      <h2>Действия агента под контролем сотрудника</h2>
+      <div class="sec">
+        <div>
+          <div class="seg" role="group" aria-label="Режим подтверждения">
+            <button data-mode="off" aria-pressed="false">Отключено</button>
+            <button data-mode="minimal" aria-pressed="false">Минимальный</button>
+            <button data-mode="standard" aria-pressed="true">Оптимальный</button>
+            <button data-mode="maximum" aria-pressed="false">Максимальный</button>
+          </div>
+          <div class="detail mode-box" id="mode-detail" aria-live="polite"></div>
+        </div>
+        <div class="card always">
+          <h3>Действует в любом режиме</h3>
+          <ul>
+            <li>Ключи доступа хранятся зашифрованными и модели не передаются.</li>
+            <li>Код инструментов выполняется в изолированном кадре без доступа к ключам и данным приложения.</li>
+            <li>Инструменты пакетов подписаны разработчиком. Изменённый код теряет подпись и без проверки не работает.</li>
+            <li>Справочники навыка видят только его инструменты.</li>
+            <li>После внешних данных создание и правка инструментов подтверждаются вручную.</li>
+            <li>Решения политики пишутся в журнал. Локальный хост отвечает только сопряжённому агенту.</li>
+          </ul>
+        </div>
+      </div>
+      <span class="brand">Выберите режим подтверждения</span>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide" data-title="Модели">
+      <p class="kicker">Модели</p>
+      <h2>Какую модель использовать, решает компания</h2>
+      <div class="models">
+        <div class="detail">
+          <div class="seg" role="group" aria-label="Где работает модель">
+            <button data-host="cloud" aria-pressed="true">Облачный провайдер</button>
+            <button data-host="onprem" aria-pressed="false">Модель в контуре компании</button>
+          </div>
+          <div class="flow" id="flow"></div>
+          <p style="margin-top:18px" id="host-text"></p>
+          <div class="gets">
+            <div><small>Модель получает</small><p>Переписку текущего чата, указания включённых навыков, результаты вызванных инструментов.</p></div>
+            <div><small>Модель не получает</small><p>Ключи доступа и пароли. Данные, которые агент не запрашивал инструментами.</p></div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="card"><h3>Свой набор моделей у чата</h3><p>Модель переключается в панели чата. В разных чатах разные модели.</p></div>
+          <div class="card"><h3>Проба модели</h3><p>Окно контекста, предел ответа, поддержка инструментов, цена, рассуждающая ли модель.</p></div>
+          <div class="card"><h3>Разные модели на разные задачи</h3><p>Для составления плана можно выбрать одну модель, для выполнения шагов другую.</p></div>
+          <div class="card"><h3>Расход на виду</h3><p>Токены, размер контекста и вызовы инструментов по каждому чату.</p></div>
+          <div class="card"><h3>Длинная переписка</h3><p>Начало переписки сворачивается в краткое изложение и не теряется.</p></div>
+          <div class="card"><h3>Большие результаты</h3><p>Хранятся отдельно от переписки и не занимают окно контекста.</p></div>
+        </div>
+      </div>
+      <span class="brand">Переключите вариант размещения модели</span>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide" data-title="Внедрение">
+      <p class="kicker">Внедрение</p>
+      <h2>Запуск и сопровождение</h2>
+      <div class="four">
+        <div class="card"><span class="big">1</span><h3>Запуск</h3><p>Файлы агента размещаются на внутреннем веб-сервере. На рабочие места ничего не устанавливается. Сотрудник открывает адрес, подключает модель, и агент сам начинает знакомство.</p></div>
+        <div class="card"><span class="big">2</span><h3>Внутренние системы</h3><p>Для работы с ними на компьютер ставится локальный хост. Навыки для SAP, Naumen, Exchange и вики ставятся из поставки.</p></div>
+        <div class="card"><span class="big">3</span><h3>Обновления</h3><p>Новая версия заменяет файлы на сервере. Что изменилось, сотрудник видит в окне «Что нового» при следующем запуске.</p></div>
+        <div class="card"><span class="big">4</span><h3>Перенос настроек</h3><p>Навыки с инструментами и данными, промпты, память и чаты выгружаются в архив с паролем. Личные записи и пароли входа не выгружаются.</p></div>
+        <div class="card"><span class="big">5</span><h3>Документация</h3><p>Описание настроенного агента собирается в HTML, DOCX или Markdown. Код, тексты и ключи в документ не попадают.</p></div>
+        <div class="card"><span class="big">6</span><h3>Сборка для раздачи</h3><p>Для раздачи агент собирается в один обфусцированный файл скрипта. Данные и настройки сотрудников при замене файлов сохраняются.</p></div>
+      </div>
+      <div class="req">
+        <div class="card"><h3>Требования</h3><p>Chrome или Edge актуальной версии. Для локального хоста: Java 8 или Node.js.</p></div>
+        <div class="card"><h3>Качество</h3><p>38 релизов с журналом изменений. Более 4 200 автоматических проверок и проверки в настоящем браузере.</p></div>
+      </div>
+      <span class="brand">Персональный AI-агент</span>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide" data-title="Развитие">
+      <p class="kicker">Развитие</p>
+      <h2>Что появится дальше</h2>
+      <div class="road">
+        <div class="timeline" role="group" aria-label="Этапы развития">
+          <button class="pick now" data-road="0" aria-pressed="true"><small>Есть сейчас</small><b>Агент в браузере, Python в браузере, защищённый локальный хост</b></button>
+          <button class="pick" data-road="1" aria-pressed="false"><small>Этап 1</small><b>Расчёты на компьютере сотрудника</b></button>
+          <button class="pick" data-road="2" aria-pressed="false"><small>Этап 2</small><b>Доступ к сетевым папкам и сервисам по разрешениям</b></button>
+          <button class="pick" data-road="3" aria-pressed="false"><small>Этап 3</small><b>Хранилище ключей сервисов</b></button>
+          <button class="pick" data-road="4" aria-pressed="false"><small>Этап 4</small><b>Стратегии работы под задачи компании</b></button>
+        </div>
+        <div>
+          <div class="detail" id="road-detail" aria-live="polite"></div>
+          <div class="pilot">
+            <h3>Для пилота нужно</h3>
+            <p>Доступ к модели по API. Браузер Chrome или Edge у участников. Список внутренних систем, с которыми агент должен работать.</p>
+          </div>
+        </div>
+      </div>
+      <span class="brand">Нажмите на этап</span>
+    </section>
+
+  </main>
+</div>
+
+<nav class="controls" aria-label="Навигация по слайдам">
+  <button class="nav" id="prev" aria-label="Предыдущий слайд">&#8249;</button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter"></span>
+  <button class="nav" id="next" aria-label="Следующий слайд">&#8250;</button>
+</nav>
+<div class="keys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> слайды · <kbd>F</kbd> во весь экран</div>
+<footer class="project">
+  <img src="data:image/png;base64,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" alt="">
+  <div>
+    <b>Ромашка (Camomile)</b>
+    <div class="meta"><span id="today">18.10.2026</span><br><a href="mailto:camomile.agent@gmail.com?subject=%D0%A0%D0%BE%D0%BC%D0%B0%D1%88%D0%BA%D0%B0%20%28Camomile%29">camomile.agent@gmail.com</a></div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // ── Содержимое интерактивных блоков ──
+  const CAPS = {
+    chat: {
+      title: 'Диалог с моделью',
+      text: 'Ответ выводится по мере генерации. Чаты раскладываются по папкам, переименовываются и ищутся по всему тексту.',
+      list: ['Несколько провайдеров и моделей, переключение в панели чата', 'Голосовой ввод в Chrome и Edge', 'Выгрузка чатов в HTML, JSON, Markdown и Excel', 'Длинную работу можно продолжить в новом чате с передаточной запиской'],
+    },
+    skills: {
+      title: 'Навыки и инструменты',
+      text: 'Навык объединяет указания для модели и набор инструментов. Его включают в чате одним нажатием.',
+      list: ['72 встроенных инструмента в 10 навыках', 'Свои инструменты на JavaScript: код работает после отметки «Код проверен»', 'Данные навыка: справочники в разделе памяти, их видят только инструменты навыка', 'Агент создаёт инструменты, навыки и промпты по просьбе сотрудника', 'Библиотека промптов с подстановкой переменных'],
+    },
+    files: {
+      title: 'Файлы',
+      text: 'Агент работает с файлами на диске по ссылке, без копирования в браузер.',
+      list: ['Чтение текста из docx, xlsx, pptx, pdf, odt, epub', 'Сборка документов Word с оглавлением и таблиц Excel', 'Правка текстовых файлов с показом изменений', 'Поиск по содержимому файлов'],
+    },
+    ext: {
+      title: 'Навыки для систем компании',
+      text: 'Пять пакетов ставятся кнопкой «📚 Из поставки»: SAP ADT, Naumen Service Desk, Microsoft Exchange, Confluence и xWiki.',
+      list: ['21 навык и 66 инструментов', 'Описание пакета читается перед установкой', 'Подпись разработчика: проверять код не нужно', 'Подробности на слайде «Системы компании»'],
+    },
+    api: {
+      title: 'Импорт API',
+      text: 'Описание внутреннего сервиса превращается в навык с набором инструментов. Каждая операция API становится отдельным инструментом.',
+      list: ['Форматы: OpenAPI, коллекция Postman, WSDL, HAR, Insomnia, GraphQL', 'Описание берётся из файла или по ссылке', 'Имена инструментов сотрудник проверяет перед импортом', 'Ключ доступа вводится один раз и хранится зашифрованным'],
+    },
+    mcp: {
+      title: 'MCP-серверы',
+      text: 'MCP-серверы подключаются напрямую или через локальный хост, если сервер во внутренней сети.',
+      list: ['Инструменты сервера появляются в агенте', 'Первое обращение к серверу подтверждается', 'Белый список разрешённых серверов'],
+    },
+    search: {
+      title: 'Поиск в интернете',
+      text: 'Поиск идёт через службу, которую выбрала компания. Найденное агент использует как данные и даёт ссылки на источники.',
+      list: ['SearXNG, Tavily, Google, Brave, DuckDuckGo', 'Если служба не ответила, поиск переходит к следующей настроенной', 'Ключи служб хранятся зашифрованными'],
+    },
+    notes: {
+      title: 'Заметки и напоминания',
+      text: 'Агент записывает заметки по ходу работы и напоминает о сроках.',
+      list: ['Заметки с тегами и поиском', 'Напоминания к дате и времени', 'Память агента на вкладке «Память»: разделы навыков и общие записи', 'Память переносится архивом, личные записи остаются у сотрудника'],
+    },
+    python: {
+      title: 'Расчёты на Python',
+      text: 'Точные расчёты агент выполняет кодом, без вычислений «в уме» модели.',
+      list: ['pandas, numpy, matplotlib, openpyxl', 'Работает в браузере, без установки', 'Подробности на следующих слайдах'],
+    },
+  };
+
+  const STEPS = [
+    {
+      title: 'Сотрудник описывает результат',
+      text: [
+        'Например: сравнить продажи по регионам за два квартала по выгрузке из учётной системы и подготовить записку для директора.',
+        'Агент уточняет недостающее вопросом с вариантами ответа и продолжает работу.',
+      ],
+    },
+    {
+      title: 'Агент составляет план',
+      text: [
+        'План из шагов виден на панели справа и обновляется по ходу работы: что сделано, что выполняется, что впереди.',
+        'Для составления плана можно назначить отдельную модель.',
+      ],
+    },
+    {
+      title: 'Шаги выполняются инструментами',
+      text: [
+        'Чтение файлов, запросы к внутренним сервисам, расчёты на Python, поиск. Каждый вызов виден в ленте хода.',
+        'Большие результаты сохраняются отдельно и не занимают контекст модели. Объёмную черновую работу агент выполняет подзадачей.',
+      ],
+    },
+    {
+      title: 'Отчёт о выполнении',
+      text: [
+        'Шаги и их итоги, вызовы инструментов с аргументами и ответами, ошибки, задачи на Python, расход токенов, созданные файлы.',
+        'Отчёт открывается в окне просмотра и выгружается в Markdown или JSON. Его удобно приложить к заявке или передать коллеге.',
+      ],
+    },
+  ];
+
+  // Архитектура: что лежит на веб-сервере и что вокруг него.
+  const ARCH = {
+    server: {
+      title: 'Внутренний веб-сервер компании',
+      text: [
+        'На сервере только статические файлы, около 46 МБ: страница агента, руководство, пакеты навыков, Python и локальный хост. Программ, баз данных и учётных записей на нём нет.',
+        'Сервер только отдаёт файлы. Переписка, файлы и ключи сотрудника к нему не уходят. Новая версия агента ставится заменой файлов.',
+        'Подойдёт любой веб-сервер. Нужен адрес https: шифрование ключей и архивов браузер даёт только на защищённом адресе.',
+      ],
+    },
+    page: {
+      title: 'Страница агента',
+      text: [
+        'index.html, один файл скрипта app.min.js и стили. Браузер загружает их при открытии адреса, весь код агента работает у сотрудника.',
+        'После обновления сотрудник видит «Что нового», а по кнопке агент сам расскажет о новом. Чаты, навыки и настройки при замене файлов сохраняются.',
+      ],
+    },
+    doc: {
+      title: 'Руководство пользователя',
+      text: [
+        '21 страница HTML со снимками экрана, поиском и учебными файлами. Открывается кнопкой «?» в агенте.',
+        'Руководство входит в ту же поставку и обновляется вместе с агентом.',
+      ],
+    },
+    content: {
+      title: 'Пакеты навыков',
+      text: [
+        'Каталог, по одному архиву на пакет и описание каждого пакета. Кнопка «📚 Из поставки» показывает описание и ставит отмеченные навыки без выбора файла и пароля.',
+        'Сейчас пять пакетов: SAP ADT, Naumen Service Desk, Exchange, Confluence, xWiki. Пакеты выходят отдельно от релизов агента.',
+      ],
+    },
+    python: {
+      title: 'Python в браузере',
+      text: [
+        'Python 3 с pandas, numpy, matplotlib и openpyxl. Загружается с сервера при первом расчёте и работает в изолированном кадре браузера без сети.',
+        'Интернет для расчётов не нужен: все пакеты Python лежат на этом сервере.',
+      ],
+    },
+    proxyfiles: {
+      title: 'Файлы локального хоста',
+      text: [
+        'proxy-sso.jar для Java 8 и proxy.js для Node.js. Агент собирает комплект: берёт прокси с этого сервера, файл настроек и скрипты запуска строит по форме.',
+        'Сотрудник сохраняет комплект в папку и запускает. Кроме Java или Node.js, ничего устанавливать не нужно.',
+      ],
+    },
+    browser: {
+      title: 'Агент в браузере',
+      text: [
+        'Весь код агента работает здесь. Чаты, навыки, инструменты, память и файлы хранятся в браузере сотрудника, ключи зашифрованы.',
+        'Python работает здесь же, в отдельном кадре без сети. Для переноса на другой компьютер есть резервная копия с паролем.',
+      ],
+    },
+    host: {
+      title: 'Локальный хост',
+      text: [
+        'Небольшая программа на компьютере сотрудника. Через неё агент обращается к внутренним сайтам, сервисам и MCP-серверам.',
+        'Слушает только 127.0.0.1 и отвечает сопряжённому агенту. Первое подключение сотрудник подтверждает кодом.',
+        'Java-версия входит в системы от имени пользователя Windows: Kerberos, при необходимости NTLM. Пароль нигде не хранится.',
+      ],
+    },
+    model: {
+      title: 'Модель',
+      text: [
+        'Любой провайдер с API в формате OpenAI: облачный сервис или модель на сервере компании.',
+        'Модель получает переписку чата и результаты инструментов. Ключи и пароли ей не передаются.',
+      ],
+    },
+    services: {
+      title: 'Внутренние системы',
+      text: [
+        'SAP (ADT), Naumen Service Desk, Exchange (EWS), Confluence, xWiki, внутренние сайты и REST API, MCP-серверы.',
+        'Агент видит в системе только то, что доступно учётной записи сотрудника.',
+      ],
+    },
+  };
+
+  // Что ещё можно держать на том же сервере. now — работает без доработки агента.
+  const IDEAS = {
+    api: {
+      title: 'Описания API внутренних сервисов',
+      status: ['now', 'Работает сейчас'],
+      text: [
+        'Описания OpenAPI, WSDL или коллекции Postman лежат на сервере по постоянным адресам. Агент импортирует описание по ссылке и делает из операций набор инструментов.',
+        'Ссылка одна для всех: сотрудникам не нужно искать и пересылать файлы описаний.',
+      ],
+    },
+    pkgs: {
+      title: 'Пакеты навыков компании',
+      status: ['now', 'Сейчас, через сборку каталога'],
+      text: [
+        'Навыки под свои системы собираются тем же сборщиком контента и появляются в «📚 Из поставки» рядом с пакетами разработчика.',
+        'Пакет без подписи разработчика ставится с проверкой: его инструменты работают после отметки «Код проверен».',
+      ],
+    },
+    kits: {
+      title: 'Наборы для команд',
+      status: ['now', 'Работает сейчас'],
+      text: [
+        'Навыки, инструменты и промпты отдела выгружаются экспортом в архив с паролем. Архив лежит на сервере, сотрудник скачивает его и ставит обычным импортом.',
+        'Личные записи памяти и пароли входа в такой архив не попадают.',
+      ],
+    },
+    preset: {
+      title: 'Настройки компании для новой установки',
+      status: ['dev', 'Нужна доработка агента'],
+      text: [
+        'Один файл: адреса моделей без ключей, режим безопасности, белые списки адресов и MCP-серверов, рекомендуемые навыки. Агент читает его при первом запуске, сотрудник вводит только свой ключ.',
+        'Тот же список разрешённых серверов попадёт в комплект локального хоста.',
+      ],
+    },
+    dirs: {
+      title: 'Справочники серверов',
+      status: ['dev', 'Нужна доработка пакетов'],
+      text: [
+        'Адреса систем SAP, серверов Naumen, Exchange и вики компании. Форма первого подключения предложит запись из справочника вместо ручного ввода адреса.',
+        'Новый сервер добавляется правкой справочника, без новой версии пакетов.',
+      ],
+    },
+    learn: {
+      title: 'Обучение и новости',
+      status: ['now', 'Страницы работают сейчас'],
+      text: [
+        'Эта презентация, примеры задач по отделам, короткие видео: обычные страницы на том же сервере.',
+        'После доработки агент сможет показывать объявления компании при запуске, рядом с «Что нового».',
+      ],
+    },
+  };
+
+  const PKGS = {
+    sap: {
+      size: '6 навыков, 14 инструментов',
+      title: 'SAP ADT',
+      text: 'Ищет объекты ABAP, читает исходный код, словарь, CDS и транспорты, выбирает данные таблиц.',
+      skills: ['Системы', 'Поиск и пакеты', 'Исходный код', 'Словарь и CDS', 'Транспорты', 'Данные'],
+      safety: 'Только чтение. Выборку данных сотрудник согласует в окне: таблица, условие, число строк. Строки приходят файлом, модель видит сводку.',
+      login: 'Вход Windows через Java-прокси или пользователь SAP; пароль хранит приложение.',
+      check: 'Подключение проверено на системе S4D. Остальные навыки ждут проверки на живой системе.',
+    },
+    naumen: {
+      size: '3 навыка, 9 инструментов',
+      title: 'Naumen Service Desk',
+      text: 'Ищет и читает заявки, сотрудников, подразделения и другие объекты, считает сводки. Запоминает устройство сервера: классы, атрибуты, справочники.',
+      skills: ['Серверы', 'Чтение данных', 'Исследование и знания'],
+      safety: 'Только чтение.',
+      login: 'Вход Windows или логин и пароль Naumen.',
+      check: 'Поиск и чтение проверены на пилотном сервере. База знаний ждёт проверки.',
+    },
+    exchange: {
+      size: '5 навыков, 14 инструментов',
+      title: 'Microsoft Exchange',
+      text: 'Ищет и читает письма и вложения, показывает календарь и занятость коллег, ищет сотрудников и группы, отправляет письма и приглашения.',
+      skills: ['Серверы', 'Почта', 'Календарь', 'Адресная книга', 'Отправка'],
+      safety: 'Письмо и приглашение уходят только после окна подтверждения: адресаты, тема и текст видны и правятся. Чтение не помечает письма прочитанными.',
+      login: 'Вход Windows (Kerberos или NTLM) или логин и пароль.',
+      check: 'Ждёт проверки на сервере компании.',
+    },
+    confluence: {
+      size: '3 навыка, 13 инструментов',
+      title: 'Confluence',
+      text: 'Ищет и читает страницы, создаёт и правит их, ставит метки, ведёт комментарии, скачивает вложения.',
+      skills: ['Серверы', 'Чтение', 'Правка'],
+      safety: 'Страницы меняет только навык правки. Удаление подтверждается во всех режимах, кроме «Отключено».',
+      login: 'Личный токен, логин и пароль или вход Windows. Настройки прежнего встроенного Confluence переносятся сами.',
+      check: 'Ждёт проверки на сервере компании.',
+    },
+    xwiki: {
+      size: '4 навыка, 16 инструментов',
+      title: 'xWiki',
+      text: 'Ищет и читает страницы и их историю, правит страницы и объекты, ведёт комментарии, читает таблицы LiveTable.',
+      skills: ['Серверы', 'Чтение', 'Правка', 'Таблицы'],
+      safety: 'Страницы меняет только навык правки. Удаление подтверждается во всех режимах, кроме «Отключено».',
+      login: 'Логин и пароль или вход Windows. Прежние настройки и справочники таблиц переносятся сами.',
+      check: 'Ждёт проверки на сервере компании.',
+    },
+  };
+
+  const MODES = {
+    off: { level: 0, title: 'Отключено', text: 'Проверок нет. Агент выполняет операции без подтверждения. Подходит для изолированного стенда.' },
+    minimal: { level: 1, title: 'Минимальный', text: 'Подтверждаются необратимые операции: удаление папок, перезапись данных при импорте.' },
+    standard: { level: 2, title: 'Оптимальный', text: 'Подтверждаются удаление, создание и изменение инструментов, импорт навыков, обращения к внешним адресам и подозрительные операции. Первое обращение к каждому MCP-серверу подтверждается отдельно. Чтение инструментами пакетов идёт без вопросов, удаление подтверждается.' },
+    maximum: { level: 3, title: 'Максимальный', text: 'Подтверждаются любые изменения данных и чтение файлов. Агенту запрещено создавать и изменять инструменты. Сеть доступна по белому списку адресов. Смена модели тоже подтверждается.' },
+  };
+
+  const HOSTS = {
+    cloud: {
+      flow: ['Агент в браузере', 'HTTPS', 'Облачный провайдер'],
+      text: 'Запросы идут из браузера к провайдеру по HTTPS. Ключ провайдера хранится у сотрудника в зашифрованном виде. Подходит для быстрого старта и для задач без конфиденциальных данных.',
+    },
+    onprem: {
+      flow: ['Агент в браузере', 'внутренняя сеть', 'Модель на сервере компании'],
+      text: 'Подходит любой сервер с API в формате OpenAI. Переписка и данные не выходят за контур компании. Облачную и внутреннюю модель можно держать в одном агенте и выбирать по задаче.',
+    },
+  };
+
+  const ROAD = [
+    {
+      title: 'Есть сейчас',
+      text: ['Всё, что показано в презентации: навыки и инструменты, файлы, навыки для SAP, Naumen, Exchange и вики, импорт API, план и отчёт, Python в браузере.', 'Локальный хост с сопряжением и входом во внутренние сервисы от имени пользователя Windows.'],
+      it: '',
+    },
+    {
+      title: 'Расчёты на компьютере сотрудника',
+      text: ['Тяжёлые задачи на Python выполняются на компьютере в изолированном контейнере Windows (AppContainer) без доступа к сети.', 'Пределы памяти и времени задаёт Job Object. Код задачи не может открыть соединение и войти в домен.'],
+      it: 'Правила AppLocker для контейнера, согласование с отделом безопасности.',
+    },
+    {
+      title: 'Доступ к папкам и сервисам по разрешениям',
+      text: ['Сетевые папки и внутренние сервисы становятся доступны задачам через разрешения. Разрешение выдаёт сотрудник: ресурс, режим, срок действия.', 'Модель может только запросить доступ. Каждое обращение пишется в журнал доступа.'],
+      it: 'Согласование списка ресурсов и формата журнала аудита.',
+    },
+    {
+      title: 'Хранилище ключей сервисов',
+      text: ['Ключи сервисов без доменной авторизации хранятся в защищённом хранилище Windows. Код задач их не видит.', 'Для сервисов на AD FS вход выполняется через системный браузер.'],
+      it: 'Регистрация приложения в AD FS, если он используется.',
+    },
+    {
+      title: 'Стратегии работы под задачи компании',
+      text: ['Готовый порядок работы для вычислительных задач: требования, код, проверки, результат.', 'Свои стратегии из шагов: например, регламент подготовки еженедельного отчёта.'],
+      it: '',
+    },
+  ];
+
+  // ── Отрисовка блоков ──
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const paras = (list) => list.map((t) => `<p>${esc(t)}</p>`).join('');
+  const press = (buttons, active) => buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === active)));
+
+  function showCap(key) {
+    const c = CAPS[key];
+    $('cap-detail').innerHTML = `<h3>${esc(c.title)}</h3><p>${esc(c.text)}</p><ul>${c.list.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
+  }
+  const capButtons = Array.from(document.querySelectorAll('[data-cap]'));
+  capButtons.forEach((b) => b.addEventListener('click', () => { press(capButtons, b); showCap(b.dataset.cap); }));
+  showCap('chat');
+
+  // Панель плана в том виде, в каком её видит сотрудник на каждом шаге.
+  const PLAN = ['Прочитать выгрузку', 'Посчитать сводную', 'Построить график', 'Собрать записку в Word'];
+  const PLAN_STATE = [
+    null,
+    ['todo', 'todo', 'todo', 'todo'],
+    ['done', 'done', 'doing', 'todo'],
+    ['done', 'done', 'done', 'done'],
+  ];
+  function planMock(i) {
+    const state = PLAN_STATE[i];
+    if (!state) {
+      return '<div class="bubble user" style="margin-left:auto;margin-bottom:16px;max-width:85%">Сравни продажи по регионам за II и III квартал и подготовь записку для директора</div>' +
+        '<div class="plan-title"><span>План</span></div>' +
+        '<div class="empty">План появится, когда агент разберёт запрос. Если в запросе чего-то не хватает, сначала будет вопрос.</div>';
+    }
+    const done = state.filter((x) => x === 'done').length;
+    const rows = PLAN.map((title, k) => {
+      const calls = state[k] === 'doing'
+        ? '<div class="calls"><span class="call">sandbox_run · 3,1 с</span><span class="call">sandbox_run · идёт</span></div>' : '';
+      return `<div class="plan-step ${state[k]}"><span class="dot"></span>${esc(title)}</div>${calls}`;
+    }).join('');
+    const report = i === 3
+      ? '<div class="report"><b>Отчёт готов</b><span>Показать</span><span>MD</span><span>JSON</span></div>' : '';
+    return `<div class="plan-title"><span>${i === 3 ? 'План выполнен' : 'План'}</span><span>${done} из ${PLAN.length}</span></div>${rows}${report}`;
+  }
+
+  function showStep(i) {
+    const s = STEPS[i];
+    $('step-detail').innerHTML = `<div class="tagline">Шаг ${i + 1} из ${STEPS.length}</div><h3>${esc(s.title)}</h3>${paras(s.text)}`;
+    $('plan-mock').innerHTML = planMock(i);
+  }
+  const stepButtons = Array.from(document.querySelectorAll('[data-step]'));
+  stepButtons.forEach((b) => b.addEventListener('click', () => { press(stepButtons, b); showStep(+b.dataset.step); }));
+  showStep(0);
+
+  // Архитектура: «Что лежит сейчас» и «Что ещё разместить».
+  const archButtons = Array.from(document.querySelectorAll('[data-arch]'));
+  const archNodes = Array.from(document.querySelectorAll('#arch-svg [data-node]'));
+  function showArch(key) {
+    archNodes.forEach((g) => g.classList.toggle('on', g.dataset.node === key));
+    const idea = IDEAS[key];
+    if (key === 'ideas') {
+      const rows = Object.keys(IDEAS).map((k) => {
+        const [cls] = IDEAS[k].status;
+        return `<li>${esc(IDEAS[k].title)}<span class="${cls}">${cls === 'now' ? 'сейчас' : 'доработка'}</span></li>`;
+      }).join('');
+      $('arch-detail').innerHTML = '<h3>Что ещё можно разместить</h3>' +
+        '<p>Сервер уже раздаёт агента всем сотрудникам. На нём же удобно держать общие материалы компании.</p>' +
+        `<ul class="ideas">${rows}</ul><p class="hint">Нажмите на предложение на схеме</p>`;
+    } else if (idea) {
+      $('arch-detail').innerHTML = `<span class="status ${idea.status[0]}">${esc(idea.status[1])}</span>` +
+        `<h3>${esc(idea.title)}</h3>${paras(idea.text)}`;
+    } else {
+      $('arch-detail').innerHTML = `<h3>${esc(ARCH[key].title)}</h3>${paras(ARCH[key].text)}`;
+    }
+  }
+  function setArchMode(mode) {
+    press(archButtons, archButtons.find((b) => b.dataset.arch === mode));
+    document.querySelector('.arch-now').classList.toggle('off', mode !== 'now');
+    document.querySelector('.arch-more').classList.toggle('off', mode !== 'more');
+    showArch(mode === 'now' ? 'server' : 'ideas');
+  }
+  const pickArch = (key) => (key === 'more' ? setArchMode('more') : showArch(key));
+  archNodes.forEach((g) => {
+    g.addEventListener('click', () => pickArch(g.dataset.node));
+    g.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); pickArch(g.dataset.node); }
+    });
+  });
+  archButtons.forEach((b) => b.addEventListener('click', () => setArchMode(b.dataset.arch)));
+  setArchMode('now');
+
+  function showPkg(key) {
+    const p = PKGS[key];
+    $('pkg-detail').innerHTML = `<h3>${esc(p.title)}</h3><p>${esc(p.text)}</p>` +
+      `<div class="chips">${p.skills.map((s) => `<span>${esc(s)}</span>`).join('')}</div>` +
+      `<dl class="kv"><dt>Состав</dt><dd>${esc(p.size)}</dd><dt>Безопасность</dt><dd>${esc(p.safety)}</dd><dt>Вход</dt><dd>${esc(p.login)}</dd>` +
+      `<dt>Проверка</dt><dd>${esc(p.check)}</dd></dl>`;
+  }
+  const pkgButtons = Array.from(document.querySelectorAll('[data-pkg]'));
+  pkgButtons.forEach((b) => b.addEventListener('click', () => { press(pkgButtons, b); showPkg(b.dataset.pkg); }));
+  showPkg('sap');
+
+  function showMode(key) {
+    const m = MODES[key];
+    const meter = [0, 1, 2, 3].map((i) => `<i class="${i <= m.level && m.level > 0 ? 'on' : ''}"></i>`).join('');
+    $('mode-detail').innerHTML = `<div class="tagline">Строгость проверок</div><div class="meter">${meter}</div><h3>${esc(m.title)}</h3><p>${esc(m.text)}</p>` +
+      '<p class="hint">Режим выбирается в настройках агента. Белые списки доменов и MCP-серверов задаются там же.</p>';
+  }
+  const modeButtons = Array.from(document.querySelectorAll('[data-mode]'));
+  modeButtons.forEach((b) => b.addEventListener('click', () => { press(modeButtons, b); showMode(b.dataset.mode); }));
+  showMode('standard');
+
+  function showHost(key) {
+    const h = HOSTS[key];
+    $('flow').innerHTML = `<div class="box">${esc(h.flow[0])}</div><span class="arrow">&rarr;</span>` +
+      `<div class="box" style="flex:.7">${esc(h.flow[1])}</div><span class="arrow">&rarr;</span><div class="box hl">${esc(h.flow[2])}</div>`;
+    $('host-text').textContent = h.text;
+    $('host-text').style.cssText = 'margin-top:18px;font-size:17px;line-height:1.6;color:var(--muted)';
+  }
+  const hostButtons = Array.from(document.querySelectorAll('[data-host]'));
+  hostButtons.forEach((b) => b.addEventListener('click', () => { press(hostButtons, b); showHost(b.dataset.host); }));
+  showHost('cloud');
+
+  function showRoad(i) {
+    const r = ROAD[i];
+    $('road-detail').innerHTML = `<h3>${esc(r.title)}</h3>${paras(r.text)}` +
+      (r.it ? `<div class="it"><b>Потребуется от IT:</b> ${esc(r.it)}</div>` : '');
+  }
+  const roadButtons = Array.from(document.querySelectorAll('[data-road]'));
+  roadButtons.forEach((b) => b.addEventListener('click', () => { press(roadButtons, b); showRoad(+b.dataset.road); }));
+  showRoad(0);
+
+  // ── Пример задачи на Python ──
+  const PY = {
+    stages: [
+      { at: 0, text: 'Запускаю Python в браузере' },
+      { at: 2, text: 'Подключаю пакеты: pandas, openpyxl' },
+      { at: 4, text: 'Исполняю код' },
+      { at: 15, text: 'Собираю файлы из output/' },
+    ],
+    lines: [
+      [5, 'Читаю продажи_2026.xlsx'],
+      [6, 'строк: 48 200, столбцов: 14'],
+      [7, 'обработано строк: 12 000'],
+      [8, 'обработано строк: 24 000'],
+      [9, 'обработано строк: 36 000'],
+      [10, 'обработано строк: 48 200'],
+      [11, 'сводная: 9 регионов, 2 квартала'],
+      [12, 'строю график'],
+      [13, 'сохраняю output/svodnaya.xlsx'],
+      [14, 'сохраняю output/grafik.png'],
+    ],
+    total: 16,
+  };
+  let pyTimer = null;
+  let pyTick = 0;
+
+  function pyReset() {
+    clearInterval(pyTimer);
+    pyTimer = null;
+    pyTick = 0;
+    $('py-stage').textContent = 'Не запущена';
+    $('py-time').textContent = '';
+    $('py-out').textContent = '';
+    $('py-result').className = 'live-result';
+    $('py-result').innerHTML = '';
+    $('py-stop').disabled = true;
+    $('py-run').disabled = false;
+    $('py-run').textContent = 'Запустить пример';
+  }
+
+  function pyStep() {
+    const stage = PY.stages.filter((s) => s.at <= pyTick).pop();
+    $('py-stage').textContent = stage.text;
+    $('py-time').textContent = `${Math.round(pyTick * 0.4)} с из 120`;
+    const shown = PY.lines.filter(([t]) => t <= pyTick).map(([, s]) => s).slice(-6);
+    $('py-out').textContent = shown.join('\n');
+    if (pyTick >= PY.total) {
+      clearInterval(pyTimer);
+      pyTimer = null;
+      $('py-stage').textContent = 'Выполнена';
+      $('py-stop').disabled = true;
+      $('py-result').className = 'live-result show';
+      $('py-result').innerHTML = '<span>Файлы:</span><span class="file-chip">svodnaya.xlsx</span><span class="file-chip">grafik.png</span>';
+      $('py-run').disabled = false;
+      $('py-run').textContent = 'Запустить ещё раз';
+      return;
+    }
+    pyTick += 1;
+  }
+
+  $('py-run').addEventListener('click', () => {
+    pyReset();
+    $('py-run').disabled = true;
+    $('py-stop').disabled = false;
+    pyStep();
+    pyTimer = setInterval(pyStep, 400);
+  });
+  $('py-stop').addEventListener('click', () => {
+    clearInterval(pyTimer);
+    pyTimer = null;
+    $('py-stage').textContent = 'Остановлена';
+    $('py-stop').disabled = true;
+    $('py-result').className = 'live-result show';
+    $('py-result').innerHTML = '<span>Задача остановлена. Код и вывод сохранены в истории запусков.</span>';
+    $('py-run').disabled = false;
+    $('py-run').textContent = 'Запустить ещё раз';
+  });
+  pyReset();
+
+  // ── Навигация ──
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const stage = $('stage');
+  const dots = $('dots');
+  let current = 0;
+
+  slides.forEach((s, i) => {
+    const num = document.createElement('span');
+    num.className = 'slide-num';
+    num.textContent = `${i + 1} / ${slides.length}`;
+    s.appendChild(num);
+    const d = document.createElement('button');
+    d.setAttribute('aria-label', `Слайд ${i + 1}: ${s.dataset.title}`);
+    d.title = s.dataset.title;
+    d.addEventListener('click', () => go(i));
+    dots.appendChild(d);
+  });
+
+  function go(i) {
+    const next = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, k) => {
+      s.classList.toggle('active', k === next);
+      s.classList.toggle('before', k < next);
+      s.setAttribute('aria-hidden', String(k !== next));
+    });
+    Array.from(dots.children).forEach((d, k) => d.setAttribute('aria-current', String(k === next)));
+    $('counter').textContent = `${next + 1} / ${slides.length}`;
+    $('prev').disabled = next === 0;
+    $('next').disabled = next === slides.length - 1;
+    if (current !== next && slides[current].contains(document.activeElement)) document.activeElement.blur();
+    current = next;
+    document.title = `${slides[next].dataset.title} · Персональный AI-агент`;
+    if (location.hash !== '#' + (next + 1)) history.replaceState(null, '', '#' + (next + 1));
+  }
+
+  $('prev').addEventListener('click', () => go(current - 1));
+  $('next').addEventListener('click', () => go(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const onButton = e.target && (e.target.closest('button') || e.target.closest('[role="button"]'));
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+    else if (e.key === ' ' && !onButton) { e.preventDefault(); go(current + (e.shiftKey ? -1 : 1)); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen && document.exitFullscreen();
+    }
+  });
+
+  // Свайп на сенсорном экране.
+  let touchX = null;
+  stage.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) go(current + (dx < 0 ? 1 : -1));
+    touchX = null;
+  });
+
+  // Дата показа презентации.
+  $('today').textContent = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Сцена 1280×720 вписывается в окно целиком.
+  function fit() {
+    const w = window.innerWidth - 32;
+    const h = window.innerHeight - 80 - 24;
+    const k = Math.min(w / 1280, h / 720);
+    stage.style.transform = `translate(-50%, -50%) scale(${Math.max(0.2, k)})`;
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  const fromHash = parseInt(location.hash.slice(1), 10);
+  go(Number.isFinite(fromHash) ? fromHash - 1 : 0);
+  window.addEventListener('hashchange', () => {
+    const n = parseInt(location.hash.slice(1), 10);
+    if (Number.isFinite(n) && n - 1 !== current) go(n - 1);
+  });
+})();
+</script>
+</body>
+</html>

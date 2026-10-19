@@ -743,6 +743,86 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
 .mem-key { flex: 1; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
 .mem-size { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
+/* Записи разработчика: подпись проверена. */
+.tool-review.vendor { color: var(--success); cursor: default; }
+
+/* Навыки из поставки (ui-content.js). */
+.cc-intro { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.cc-pkg { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; margin-bottom: 8px; }
+.cc-icon { font-size: 22px; line-height: 1; }
+.cc-main { flex: 1; min-width: 0; }
+.cc-title { font-weight: 600; font-size: 14px; }
+.cc-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.cc-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.cc-badge { font-size: 11px; font-weight: 500; border-radius: 10px; padding: 1px 8px; margin-left: 6px;
+  background: var(--bg-tertiary, var(--bg-secondary)); color: var(--text-secondary); }
+.cc-badge.cc-update { color: var(--warning); }
+.cc-badge.cc-same { color: var(--success); }
+.cc-readme { max-height: 45vh; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 14px; margin-bottom: 12px; font-size: 13px; line-height: 1.55; }
+.cc-readme h3 { font-size: 15px; margin: 14px 0 6px; }
+.cc-readme h3:first-child { margin-top: 2px; }
+.cc-readme h4 { font-size: 13px; margin: 10px 0 4px; }
+.cc-readme p { margin: 6px 0; }
+.cc-readme ul, .cc-readme ol { margin: 6px 0; padding-left: 22px; }
+.cc-readme li { margin: 3px 0; }
+.cc-readme .md-table-scroll { margin: 8px 0; }
+/* Строки навыков — не подписи полей: без прописных. */
+.cc-skills .check-row { text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 13px; color: var(--text-primary); }
+.cc-skill { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.cc-skill-name { flex: 1 1 200px; }
+.cc-ver, .cc-state { font-size: 11px; color: var(--text-muted); }
+.cc-warn { font-size: 12px; color: var(--danger); margin-bottom: 10px; }
+.cc-read { font-weight: 600; margin-top: 6px; }
+.cc-status { font-size: 12px; margin-top: 6px; min-height: 16px; }
+
+/* «Что нового»: предложение рассказать о новом и провести обучение. */
+.rel-offer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin-bottom: 12px; }
+.rel-offer > span { flex: 1 1 200px; }
+
+/* Незащищённый адрес: в окне с паролями, до ввода. */
+.insecure-warning {
+  font-size: 12px; line-height: 1.5; color: var(--warning);
+  border: 1px solid var(--warning); border-radius: var(--radius);
+  padding: 8px 10px; margin: -4px 0 12px;
+}
+
+/* Вкладка «Память» */
+.tree-node-row .tw-count { margin-left: auto; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.memory-container { padding: 20px; overflow-y: auto; }
+.memory-intro { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; max-width: 900px; }
+.mem-empty { color: var(--text-secondary); font-size: 13px; }
+.mem-foot { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.mx-space { padding: 4px 0 8px; border-bottom: 1px solid var(--border); }
+.mx-space:last-child { border-bottom: none; }
+.sel-list label.check-row.sel-mem-space, #mi-values label.check-row, .mx-space label.check-row { text-transform: none; letter-spacing: normal; font-weight: 400; }
+.mx-space label.check-row.sel-mem-space { font-weight: 600; }
+
+/* Разделы памяти: записи сгруппированы по данным навыков. */
+.mem-total-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.mem-total { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.mem-group { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin-bottom: 10px; }
+.mem-group-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mem-group-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.mem-group-meta { font-size: 11px; color: var(--text-muted); margin: 4px 0 2px; }
+.mem-ns { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: var(--accent-light); }
+.mem-orphan { color: var(--warning); }
+.mem-badge { font-size: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 1px 7px; color: var(--text-muted); }
+.mem-badge.share { color: var(--success); border-color: var(--success); }
+.mem-badge.warn { color: var(--warning); border-color: var(--warning); }
+.mem-key-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.mem-key-row .mk-key { flex: 0 0 34%; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.mem-key-row .mk-about { flex: 1; }
+.mem-key-row .check-row { margin: 0; white-space: nowrap; font-size: 11px; }
+/* Перенос навыка: что из данных уезжает в архив. */
+.sel-mem-space { font-size: 12px; font-weight: 600; margin: 6px 0 2px; }
+.sel-mem-note { font-size: 11px; color: var(--text-muted); }
+/* Ключ памяти показывается как есть: подписи полей формы набраны заглавными. */
+#sel-mem label.check-row { text-transform: none; letter-spacing: normal; font-weight: 400; }
+.check-row.sel-mem-note { font-size: 11px; color: var(--text-muted); cursor: default; }
+
 /* ── Проверка ограничений (вкладка «Ограничения») ──
    Замечание должно читаться как разбор, а не как ошибка формы: сначала
    что не так, потом почему, и рядом — готовое значение. */
@@ -1698,6 +1778,29 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
 }
 
 .skill-tools-warn { font-size: 10px; color: var(--warning); padding: 2px 4px; }
+/* ── Окно навыка ──
+   По умолчанию 60% ширины экрана: в списках строка инструмента или раздела
+   несёт имя, признаки и кнопку подробностей. */
+.modal.modal-skill { width: max(60vw, min(520px, 94vw)); max-width: 94vw; max-height: 90vh; }
+.modal.modal-skill .skill-tools-picker { max-height: 42vh; }
+.modal-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 4px 0 10px; padding-bottom: 6px; }
+.sk-pane[hidden] { display: none; }
+.sk-pane > input { margin-bottom: 6px; width: 100%; }
+.pick-hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 6px; }
+.pick-item[hidden] { display: none; }
+.pick-view { padding: 0 6px; line-height: 1.4; flex: 0 0 auto; }
+.pick-view.active { background: var(--accent); color: #fff; }
+.pick-details { margin: 2px 8px 8px 30px; padding: 8px 10px; border-left: 2px solid var(--border); font-size: 12px; line-height: 1.5; }
+.pick-details[hidden] { display: none; }
+.pick-desc { color: var(--text-primary); margin-bottom: 4px; white-space: pre-wrap; }
+.pick-meta { color: var(--text-secondary); }
+.pick-muted { color: var(--text-muted); }
+.pick-list { margin: 2px 0 4px 18px; padding: 0; }
+.pick-list code { font-size: 11px; }
+.pick-code pre { max-height: 30vh; overflow: auto; }
+
+/* Данные навыка на карточке: разделы памяти */
+.skill-tool-chip.mem { font-family: inherit; color: var(--text-secondary); border-color: var(--border); background: transparent; }
 
 /* Системные навык и инструменты: выключить нельзя */
 .toggle-switch.locked { cursor: not-allowed; opacity: 0.75; }
@@ -2061,10 +2164,36 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+  /* minmax(0, 1fr), а не 1fr: у 1fr нижняя граница — ширина содержимого,
+     и шапка с шестью вкладками растягивала колонку до ~900px. Телефон
+     тогда расширял страницу под неё: окно формы уезжало вправо, кнопка
+     «Сохранить» оказывалась за краем экрана. */
   #app,
   #app.plan-open,
   #app.sidebar-collapsed,
-  #app.sidebar-collapsed.plan-open { grid-template-columns: 1fr; }
+  #app.sidebar-collapsed.plan-open { grid-template-columns: minmax(0, 1fr); }
+  html, body { overflow-x: hidden; }
+  #main { min-width: 0; }
+  /* Вкладки шапки — строкой с прокруткой, имя агента сжимается. */
+  #header { padding: 0 8px; gap: 8px; min-width: 0; }
+  #header .logo { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 16px; }
+  #header .tabs { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  #header .tabs::-webkit-scrollbar { display: none; }
+  #header .tabs .tab-btn { flex-shrink: 0; padding: 8px 10px; }
+  /* Окно — во всю ширину экрана с полями: широкая раскладка и наименьшая
+     ширина окна для настольного экрана здесь не помещаются. */
+  .modal,
+  .modal.modal-wide,
+  .modal.modal-skill { width: calc(100vw - 16px); max-width: calc(100vw - 16px); min-width: 0; padding: 16px; max-height: 92vh; }
+  /* Кнопки окна переносятся на вторую строку, а не уходят за край. */
+  .modal-actions { flex-wrap: wrap; }
+  /* Шапка раздела (инструменты, навыки, промпты, память): кнопки
+     переносятся на следующую строку, а не обрезаются за краем экрана. */
+  .panel > div:first-child { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  /* В шапке телефона место нужно вкладкам: от имени агента остаётся значок. */
+  #header #agent-name { display: none; }
   /* Колонка здесь одна, и явные координаты из раскладки для широкого
      экрана увели бы переписку в несуществующую вторую. */
   #main, #plan-panel { grid-column: 1; }
@@ -2266,6 +2395,7 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
   text-overflow: ellipsis;
 }
 .compact-name.clickable { cursor: pointer; }
+.file-compact-size { font-size: 11px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .compact-name.clickable:hover { color: var(--accent-light); }
 
 /* Кнопка плотности: активное состояние видно, а не угадывается. */

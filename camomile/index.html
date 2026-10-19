@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta name="app-build" content="46d360f6b1">
+<meta name="app-build" content="4703387e72">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Camomile — Персональный помощник</title>
 <!-- Стандартная иконка Camomile; заменяется выбранной пользователем при запуске. -->
 <link rel="icon" id="app-favicon" href="assets/icons/camomile.png">
-<link rel="stylesheet" href="css/styles.css?v=e2b7ec5f0a">
+<link rel="stylesheet" href="css/styles.css?v=7924de6773">
 </head>
 <body>
 
@@ -33,6 +33,7 @@
       <button class="tab-btn" data-tab="tools">🔧 Инструменты</button>
       <button class="tab-btn" data-tab="skills">🧩 Навыки</button>
       <button class="tab-btn" data-tab="prompts">📋 Промпты</button>
+      <button class="tab-btn" data-tab="memory">🧠 Память</button>
       <button class="tab-btn" data-tab="files">📎 Файлы</button>
     </div>
     <span id="connection-status"><span class="status-dot offline"></span></span>
@@ -44,7 +45,7 @@
   <aside id="sidebar">
     <div id="sidebar-resizer" title="Потяните, чтобы изменить ширину"></div>
     <div class="sidebar-header">
-      <input type="text" id="sidebar-search" placeholder="Поиск...">
+      <input type="text" id="sidebar-search" placeholder="Поиск..." autocomplete="off">
     </div>
     <div class="sidebar-list" id="sidebar-list"></div>
     <div class="sidebar-footer">
@@ -124,6 +125,7 @@
         <button class="btn btn-primary btn-sm" id="add-skill-btn">+ Новый навык</button>
         <button class="btn btn-secondary btn-sm export-import-btn" data-section="skills" title="Выборочный экспорт навыков">📦 Экспорт</button>
         <button class="btn btn-secondary btn-sm import-btn" data-section="skills" title="Импорт из зашифрованного архива">📥 Импорт</button>
+        <button class="btn btn-secondary btn-sm" id="skills-catalog-btn" title="Навыки с инструментами из этой сборки">📚 Из поставки</button>
       </div>
       <div class="skills-container" id="skills-container"></div>  
     </div>
@@ -144,10 +146,24 @@
       <div class="prompts-container" id="prompts-container"></div>   
     </div>
 
+    <!-- MEMORY PANEL -->
+    <!-- Память агента по разделам (данным навыков) и общая память. Слева —
+         список разделов, см. ui/ui-memory.js. -->
+    <div class="panel" id="panel-memory">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;">
+        <h3 style="flex:1;">Память</h3>
+        <button class="btn btn-primary btn-sm" id="add-memory-space-btn">+ Раздел</button>
+        <button class="btn btn-secondary btn-sm" id="memory-export-btn" title="Экспорт разделов и записей в зашифрованный архив">📦 Экспорт</button>
+        <button class="btn btn-secondary btn-sm" id="memory-import-btn" title="Импорт из зашифрованного архива">📥 Импорт</button>
+      </div>
+      <div class="memory-container" id="memory-container"></div>
+    </div>
+
     <!-- FILES PANEL -->
     <div class="panel" id="panel-files">
       <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;">
         <h3 style="flex:1;">Файлы</h3>
+        <button class="btn btn-secondary btn-sm density-btn" data-compact="files" title="Компактный вид: только названия">▤ Компактно</button>
         <button class="btn btn-secondary btn-sm" id="add-file-folder-btn">📁 Папка</button>
         <button class="btn btn-primary btn-sm" id="add-file-btn">+ Добавить файлы</button>
       </div>
@@ -175,6 +191,6 @@
 <!-- MODALS CONTAINER -->
 <div id="modals"></div>
 
-<script src="app.min.js?v=46d360f6b1"></script>
+<script src="app.min.js?v=4703387e72"></script>
 </body>
 </html>
