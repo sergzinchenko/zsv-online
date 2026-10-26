@@ -2621,6 +2621,31 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
   border-left: 2px solid var(--warning);
 }
 
+/* Надёжность (ui-reliability.js). Ошибка провайдера — авария, но с
+   выходами: повторить, сменить модель, перенести работу. Приостановка
+   сторожем — решение, как остановка по ограничению. Повтор запроса —
+   тихая отметка: работа идёт сама. */
+.message.system.run-error {
+  max-width: 90%;
+  font-size: 13px;
+  border: 1px solid var(--danger);
+  border-left-width: 2px;
+  background: rgba(231,76,60,0.08);
+}
+.message.system.watchdog-stop {
+  max-width: 90%;
+  font-size: 13px;
+  border: 1px solid var(--warning);
+  border-left-width: 2px;
+  background: rgba(253,203,110,0.10);
+}
+.message.system.retry-note {
+  max-width: 90%;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-left: 2px solid var(--border);
+}
+
 /* ===== ОКНО ИНСТРУМЕНТА (кадр песочницы) =====
    Приложение рисует только рамку: содержимое — это сам <iframe>
    песочницы, положенный поверх неё (см. showSandboxDialog в
@@ -2959,6 +2984,51 @@ iframe.sandbox-dialog-view {
   line-height: 1.5;
 }
 .review-guard-live { margin-top: 4px; color: var(--warning); }
+
+/* ===== СОВМЕЩЕНИЕ НАВЫКОВ (ui/ui-skill-policy.js) ===== */
+.chip.stat-chip.policy-chip { cursor: pointer; }
+.policy-head { font-weight: 600; color: var(--text-secondary); margin: 12px 0 6px; font-size: 12px; }
+.policy-item {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.policy-item.policy-open { border-left-color: var(--warning); }
+.policy-topic { font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.policy-side { color: var(--text-primary); margin: 2px 0; }
+.policy-quote { color: var(--text-muted); font-style: italic; margin: 1px 0 4px 12px; overflow-wrap: anywhere; }
+.policy-note { color: var(--text-secondary); margin-top: 4px; }
+.policy-src {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 6px;
+  margin-left: 4px;
+}
+.policy-ruling { display: flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--text-secondary); }
+.policy-ruling select { flex: 1; min-width: 0; }
+.policy-empty { font-size: 13px; color: var(--text-primary); margin: 8px 0 4px; }
+.policy-status { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+.policy-editor-note {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-left: 3px solid var(--warning);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.policy-editor-note ul { margin: 2px 0 4px; padding-left: 18px; }
+.policy-editor-note .policy-note-bad { color: var(--danger); }
+.policy-editor-note .policy-note-warn { color: var(--warning); }
+.policy-editor-note .policy-note-info { color: var(--text-muted); }
 
 /* ===== ОТЧЁТ О ЗАВИСИМОСТЯХ ИНСТРУМЕНТА ===== */
 .dep-section { margin: 10px 0; }
