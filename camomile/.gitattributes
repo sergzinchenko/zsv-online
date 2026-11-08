@@ -1,0 +1,3 @@
+# Vendor-ресурсы как есть: проверяются манифестами.
+vendor/pyodide/** -text
+vendor/pdfjs/** -text

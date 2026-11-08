@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta name="app-build" content="2ddcc128fe">
+<meta name="app-build" content="55ef2a4840">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Camomile — Персональный помощник</title>
 <!-- Стандартная иконка Camomile; заменяется выбранной пользователем при запуске. -->
 <link rel="icon" id="app-favicon" href="assets/icons/camomile.png">
-<link rel="stylesheet" href="css/styles.css?v=befba4cc95">
+<link rel="stylesheet" href="css/styles.css?v=a5bc11878a">
 </head>
 <body>
 
@@ -32,9 +32,10 @@
       <button class="tab-btn active" data-tab="chat">💬 Чаты</button>
       <button class="tab-btn" data-tab="tools">🔧 Инструменты</button>
       <button class="tab-btn" data-tab="skills">🧩 Навыки</button>
-      <button class="tab-btn" data-tab="prompts">📋 Промпты</button>
+      <button class="tab-btn" data-tab="prompts">📋 Задачи</button>
       <button class="tab-btn" data-tab="memory">🧠 Память</button>
       <button class="tab-btn" data-tab="files">📎 Файлы</button>
+      <button class="tab-btn" data-tab="knowledge">📚 Знания</button>
     </div>
     <span id="connection-status"><span class="status-dot offline"></span></span>
     <a id="user-guide-link" href="doc/user/index.html" target="_blank" rel="noopener" title="Руководство пользователя" aria-label="Руководство пользователя">?</a>
@@ -89,6 +90,7 @@
         <div class="chat-toolbar" id="chat-toolbar"></div>
         <div id="chat-input-row">
           <textarea id="chat-input" placeholder="Введите сообщение (Shift+Enter для новой строки)" rows="1"></textarea>
+          <button id="prompt-pick-btn" title="Выбрать задачу">📋</button>
           <button id="voice-btn" title="Голосовой ввод">🎙</button>
           <button id="stop-btn" title="Прервать работу агента" hidden>⏹</button>
           <button id="send-btn" title="Отправить">▶</button>
@@ -102,7 +104,7 @@
         <h3 style="flex:1;">Инструменты</h3>
         <!-- Первая кнопка слева — переключатель плотности списка.
              Своя на каждый раздел: в инструментах компактный вид нужен почти
-             всегда (их десятки), а в промптах — редко. -->
+             всегда (их десятки), а в задачах — редко. -->
         <button class="btn btn-secondary btn-sm density-btn" data-compact="tools" title="Компактный вид: только названия">▤ Компактно</button>
         <button class="btn btn-secondary btn-sm" id="add-tool-folder-btn">📁 Папка</button>
         <button class="btn btn-primary btn-sm" id="add-tool-btn">+ Новый инструмент</button>
@@ -119,7 +121,7 @@
         <h3 style="flex:1;">Навыки</h3>
         <!-- Первая кнопка слева — переключатель плотности списка.
              Своя на каждый раздел: в инструментах компактный вид нужен почти
-             всегда (их десятки), а в промптах — редко. -->
+             всегда (их десятки), а в задачах — редко. -->
         <button class="btn btn-secondary btn-sm density-btn" data-compact="skills" title="Компактный вид: только названия">▤ Компактно</button>
         <button class="btn btn-secondary btn-sm" id="add-skill-folder-btn">📁 Папка</button>
         <button class="btn btn-primary btn-sm" id="add-skill-btn">+ Новый навык</button>
@@ -133,14 +135,14 @@
     <!-- PROMPTS PANEL -->
     <div class="panel" id="panel-prompts">
       <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center;">
-        <h3 style="flex:1;">Библиотека промптов</h3>
+        <h3 style="flex:1;">Библиотека задач</h3>
         <!-- Первая кнопка слева — переключатель плотности списка.
              Своя на каждый раздел: в инструментах компактный вид нужен почти
-             всегда (их десятки), а в промптах — редко. -->
+             всегда (их десятки), а в задачах — редко. -->
         <button class="btn btn-secondary btn-sm density-btn" data-compact="prompts" title="Компактный вид: только названия">▤ Компактно</button>
         <button class="btn btn-secondary btn-sm" id="add-prompt-folder-btn">📁 Папка</button>
-        <button class="btn btn-primary btn-sm" id="add-prompt-btn">+ Новый промпт</button>
-        <button class="btn btn-secondary btn-sm export-import-btn" data-section="prompts" title="Выборочный экспорт промптов">📦 Экспорт</button>
+        <button class="btn btn-primary btn-sm" id="add-prompt-btn">+ Новая задача</button>
+        <button class="btn btn-secondary btn-sm export-import-btn" data-section="prompts" title="Выборочный экспорт задач">📦 Экспорт</button>
         <button class="btn btn-secondary btn-sm import-btn" data-section="prompts" title="Импорт из зашифрованного архива">📥 Импорт</button>
       </div>
       <div class="prompts-container" id="prompts-container"></div>   
@@ -169,6 +171,21 @@
       </div>
       <div class="files-container" id="files-container"></div>
     </div>
+
+    <!-- KNOWLEDGE PANEL: каталог базы знаний (ui/ui-knowledge.js) -->
+    <div class="panel" id="panel-knowledge">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <h3 style="flex:1;">База знаний</h3>
+        <button class="btn btn-primary btn-sm" id="kb-add-files" title="Добавить файлы в базу знаний">＋ Файлы</button>
+        <button class="btn btn-secondary btn-sm" id="kb-add-folder" title="Добавить папку с вложенными">＋ Папка</button>
+        <button class="btn btn-secondary btn-sm" id="kb-check" title="Сравнить размер и время изменения файлов с базой, не читая их">Проверить изменения</button>
+        <button class="btn btn-secondary btn-sm" id="kb-reindex" title="Выбранные, изменённые или все документы">⟳ Переиндексировать</button>
+        <button class="btn btn-secondary btn-sm" id="kb-remove" title="Удалить выбранные документы из базы. Файлы на диске не изменятся" disabled>🗑 Удалить из базы</button>
+        <button class="btn btn-secondary btn-sm" id="kb-export" title="Выгрузить базу или её часть в зашифрованный файл: текст документов и векторы">📦 Экспорт</button>
+        <button class="btn btn-secondary btn-sm" id="kb-import" title="Загрузить базу из выгрузки">📥 Импорт</button>
+      </div>
+      <div class="kb-container" id="kb-container"></div>
+    </div>
   </main>
 
   <!-- ПАНЕЛЬ ПЛАНА -->
@@ -191,6 +208,6 @@
 <!-- MODALS CONTAINER -->
 <div id="modals"></div>
 
-<script src="app.min.js?v=2ddcc128fe"></script>
+<script src="app.min.js?v=55ef2a4840"></script>
 </body>
 </html>

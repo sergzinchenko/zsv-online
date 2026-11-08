@@ -654,7 +654,7 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
 .md-table th { background: var(--bg-tertiary); font-weight: 600; white-space: nowrap; }
 .md-table tbody tr:last-child td { border-bottom: none; }
 .md-table tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--bg-tertiary) 40%, transparent); }
-.table-copy-btn, .msg-copy-btn {
+.table-copy-btn, .msg-copy-btn, .msg-prompt-btn, .msg-kb-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-secondary);
@@ -663,9 +663,9 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
   padding: 2px 8px;
   cursor: pointer;
 }
-.table-copy-btn:hover, .msg-copy-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+.table-copy-btn:hover, .msg-copy-btn:hover, .msg-prompt-btn:hover, .msg-kb-btn:hover { border-color: var(--accent); color: var(--accent-light); }
 .table-copy-btn.copied, .msg-copy-btn.copied { border-color: var(--success); color: var(--success); }
-.msg-copy-btn { padding: 0 6px; margin-left: 6px; font-size: 11px; line-height: 1.6; }
+.msg-copy-btn, .msg-prompt-btn, .msg-kb-btn { padding: 0 6px; margin-left: 6px; font-size: 11px; line-height: 1.6; }
 
 .message pre {
   background: var(--bg-primary);
@@ -1152,7 +1152,7 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
   background: rgba(225,112,85,0.12);
 }
 
-#voice-btn {
+#voice-btn, #prompt-pick-btn {
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -1167,7 +1167,19 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
   transition: var(--transition);
   flex-shrink: 0;
 }
-#voice-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+#voice-btn:hover, #prompt-pick-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+#prompt-pick-btn { font-size: 16px; }
+/* Выбор промпта у поля ввода */
+.modal.modal-picker .modal-actions .btn-primary { display: none; }
+#pp_filter { width: 100%; margin-bottom: 8px; }
+.pp-list { max-height: 55vh; overflow-y: auto; }
+.pp-group { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin: 8px 0 4px; }
+.pp-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.pp-row[hidden] { display: none; }
+.pp-use { flex: 1; display: flex; align-items: center; gap: 6px; text-align: left; background: var(--bg-tertiary);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; color: var(--text-primary); cursor: pointer; font-size: 13px; }
+.pp-use:hover { border-color: var(--accent); }
+.pp-use .pp-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #voice-btn.listening {
   background: var(--danger);
   border-color: var(--danger);
@@ -1401,6 +1413,11 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
 }
 .plan-facts ul { margin: 0; padding-left: 16px; }
 .plan-facts li { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+/* Проверка итога «Плана и шагов»: вердикт критика и неснятые замечания. */
+.plan-review { margin-top: 10px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.plan-review-bad { color: var(--warning); }
+.plan-review ul { margin: 2px 0 0; padding-left: 16px; }
+.plan-review li { font-size: 11px; }
 .plan-panel-actions { margin-top: 14px; }
 .plan-panel-hint { font-size: 10px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
 
@@ -1778,6 +1795,61 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
 }
 
 .skill-tools-warn { font-size: 10px; color: var(--warning); padding: 2px 4px; }
+
+/* Набор чата в редакторе промпта: навыки с вложенными инструментами */
+.pscope-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+.pscope-head > span { flex: 1 0 100%; font-size: 12px; color: var(--text-secondary); }
+#pr_scope_filter { margin-bottom: 6px; width: 100%; }
+.pscope-list { max-height: 260px; }
+#pr_scope label.skill-tool-row, #pr_scope label.check-row { text-transform: none; letter-spacing: normal; font-weight: 400; }
+.pscope-tools { margin: 0 0 4px 26px; }
+.pscope-tools > summary { font-size: 11px; color: var(--text-muted); cursor: pointer; padding: 2px 0; }
+.pscope-kb { margin: 0 0 4px 26px; }
+.pscope-kb > summary { font-size: 11px; color: var(--text-muted); cursor: pointer; padding: 2px 0; }
+
+/* Выбор базы знаний: в окне навыка в чате и в наборе задачи */
+.kb-scope-modes { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; margin-bottom: 6px; }
+.kb-scope-modes .check-row { margin: 0; font-size: 12px; text-transform: none; letter-spacing: normal; font-weight: 400; }
+.kb-scope-modes input { width: auto; margin: 0 4px 0 0; }
+.kb-scope-count { flex: 1; text-align: right; font-size: 11px; color: var(--text-muted); }
+.kb-scope-tree { max-height: 260px; }
+.kb-scope-tree[hidden], .kbs-children[hidden] { display: none; }
+/* .kb-scope впереди: в редакторе задачи выбор стоит внутри .form-group, а там у label прописные */
+.kb-scope label.kbs-label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; margin: 0;
+  text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 12px; }
+/* В наборе задачи дерево прокручивается вместе со списком навыков, без второй полосы */
+.pscope-kb .kb-scope-tree { max-height: none; }
+.kbs-label input { width: auto; margin: 0; }
+label.kbs-row { text-transform: none; letter-spacing: normal; font-weight: 400; }
+.kbs-twisty { width: 16px; padding: 0; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 11px; }
+.kbs-twisty:disabled { visibility: hidden; }
+.chip .chip-kb-count {
+  margin-left: 4px; font-size: 10px; padding: 0 4px; border-radius: 6px;
+  background: var(--bg-tertiary, rgba(0,0,0,.15)); color: var(--accent-light, #8c7ae6);
+}
+#pr_scope_extra .check-row { justify-content: flex-start; font-size: 12px; margin-top: 6px; }
+.prompt-scope { display: inline-flex; gap: 2px; margin-left: 4px; vertical-align: middle; flex: 0 0 auto; }
+.prompt-scope-chip { font-size: 12px; line-height: 1; }
+.prompt-scope-chip.missing { opacity: .6; }
+.pscope-confirm { margin: 4px 0 8px 18px; padding: 0; font-size: 13px; line-height: 1.6; }
+.pscope-risk { font-size: 11px; color: var(--warning); }
+.pscope-risk.danger { color: var(--danger); }
+.pr-secret { margin-top: 6px; font-size: 12px; color: var(--danger); border-left: 3px solid var(--danger); padding: 4px 8px; }
+.pr-secret[hidden] { display: none; }
+.pr-compare { margin-bottom: 12px; font-size: 12px; }
+.pr-compare > summary { cursor: pointer; color: var(--text-secondary); }
+.pr-compare pre { max-height: 160px; overflow: auto; white-space: pre-wrap; }
+.pr-draft-note { margin-bottom: 8px; }
+#pr_vars[hidden] { display: none; }
+.pv-row { display: grid; grid-template-columns: minmax(80px, auto) 1fr 1fr 1fr auto; gap: 6px; align-items: center; margin-bottom: 6px; }
+.pv-row code { font-size: 12px; }
+.pv-row input:not([type=checkbox]) { min-width: 0; font-size: 12px; padding: 5px 8px; }
+#pr_vars label.check-row { text-transform: none; letter-spacing: normal; font-weight: 400; margin: 0; font-size: 12px; }
+@media (max-width: 640px) { .pv-row { grid-template-columns: 1fr 1fr; } }
+.pr-build { margin-bottom: 12px; }
+.pr-build-confirm { font-size: 12px; color: var(--text-secondary); }
+.pr-build-confirm[hidden], .pr-compare[hidden] { display: none; }
+#chat-to-prompt { cursor: pointer; }
 /* ── Окно навыка ──
    По умолчанию 60% ширины экрана: в списках строка инструмента или раздела
    несёт имя, признаки и кнопку подробностей. */
@@ -2205,6 +2277,161 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
 
 /* ===== FILES ===== */
 .files-container { display: block; padding: 20px; overflow-y: auto; }
+
+/* ── Каталог базы знаний (ui/ui-knowledge.js) ── */
+.kb-container { display: block; padding: 20px; overflow-y: auto; }
+#panel-knowledge.kb-drop .kb-container { outline: 2px dashed var(--accent); outline-offset: -10px; }
+.kb-empty { color: var(--text-secondary); font-size: 13px; line-height: 1.6; max-width: 640px; }
+.kb-empty-actions { display: flex; gap: 8px; margin: 12px 0; }
+.kb-summary { margin-bottom: 14px; }
+.kb-totals { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+.kb-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.kb-storage, .kb-search-note { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.kb-st-ready { color: var(--success); }
+.kb-st-changed, .kb-st-access, .kb-st-missing, .kb-st-duplicate { color: var(--warning); }
+.kb-st-error { color: var(--danger); }
+.kb-st-no_text, .kb-st-queued { color: var(--text-muted); }
+.kb-chip.kb-st-ready, .kb-chip.kb-st-changed, .kb-chip.kb-st-access, .kb-chip.kb-st-missing,
+.kb-chip.kb-st-error, .kb-chip.kb-st-no_text, .kb-chip.kb-st-queued, .kb-chip.kb-st-duplicate { color: inherit; }
+.kb-dup { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.kb-progress {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 14px;
+  border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px;
+}
+.kb-progress-text { flex: 1; min-width: 200px; color: var(--text-secondary); }
+.kb-progress progress { width: 180px; }
+.kb-search { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 14px; }
+.kb-search > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.kb-search-row { display: flex; gap: 8px; margin: 10px 0 6px; }
+.kb-search-row input {
+  flex: 1; padding: 6px 10px; font-size: 13px; font-family: inherit; outline: none;
+  background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-primary);
+}
+.kb-search-row input:focus { border-color: var(--accent); }
+.kb-hit { border-top: 1px solid var(--border); padding: 8px 0; }
+.kb-hit-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.kb-hit-place, .kb-hit-meta { font-size: 11px; color: var(--text-muted); }
+.kb-hit-text, .kb-chunk-text {
+  white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.5;
+  background: var(--bg-tertiary); border-radius: var(--radius); padding: 8px 10px; margin: 6px 0 0;
+  max-height: 260px; overflow-y: auto;
+}
+.kb-list-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 12px; }
+.kb-list-head .check-row { margin: 0; }
+.kb-checked { color: var(--text-muted); }
+.kb-group { border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; margin-bottom: 10px; }
+.kb-group-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 4px 0 6px; }
+.kb-group-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.kb-group-meta { flex: 1; font-size: 11px; color: var(--text-muted); }
+.kb-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.kb-row input[type="checkbox"] { width: auto; margin: 0; }
+.kb-state { width: 18px; text-align: center; }
+.kb-name.clickable { cursor: pointer; color: var(--text-primary); }
+.kb-name.clickable:hover { color: var(--accent-light); }
+.kb-row .kb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-dir { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30%; }
+.kb-meta { flex: 1; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.kb-label { font-size: 11px; white-space: nowrap; }
+.kb-none { font-size: 12px; color: var(--text-muted); padding: 6px 0; }
+.kb-menu {
+  position: fixed; z-index: 1000; display: flex; flex-direction: column; min-width: 240px;
+  background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.kb-menu button {
+  background: none; border: none; text-align: left; padding: 8px 12px; font-size: 13px;
+  color: var(--text-primary); cursor: pointer;
+}
+.kb-menu button:hover:not([disabled]) { background: var(--bg-hover); }
+.kb-menu button[disabled] { color: var(--text-muted); cursor: default; }
+.kb-card-state { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.kb-card-error { font-size: 13px; color: var(--text-primary); }
+.kb-card-hint, .kb-card-note { font-size: 12px; color: var(--text-secondary); margin: 4px 0; }
+.kb-card-table { border-collapse: collapse; font-size: 12px; margin: 10px 0; }
+.kb-card-table td { padding: 3px 12px 3px 0; vertical-align: top; }
+.kb-card-table td:first-child { color: var(--text-muted); white-space: nowrap; }
+.kb-card-sub { font-size: 13px; margin: 16px 0 6px; }
+.kb-chunk { border-top: 1px solid var(--border); padding: 6px 0; }
+.kb-chunk > summary { cursor: pointer; font-size: 12px; color: var(--text-secondary); }
+.kb-model {
+  padding: 10px 14px; margin-bottom: 14px; font-size: 12px; line-height: 1.6;
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.kb-model-stale, .kb-model-mismatch, .kb-model-missing { border-color: var(--warning); }
+.kb-model-line { color: var(--text-primary); }
+.kb-model-spend { color: var(--text-muted); font-size: 11px; }
+.kb-model-note { color: var(--text-secondary); margin-top: 4px; }
+.kb-model-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.kb-model .btn-link {
+  background: none; border: none; padding: 0 2px; cursor: pointer; color: var(--text-muted); font-size: 11px;
+}
+.kb-model .btn-link:hover { color: var(--accent-light); }
+/* Действие-ссылка в строке текста: «＋ Запись», «открыть». */
+.kb-notes-line .btn-link, .kb-assign-note .btn-link {
+  background: none; border: none; padding: 0 2px; cursor: pointer; color: var(--accent-light); font: inherit;
+}
+.kb-notes-line .btn-link:hover, .kb-assign-note .btn-link:hover { text-decoration: underline; }
+.kb-assign-info { font-size: 12px; line-height: 1.6; color: var(--text-secondary); margin: 4px 0 12px; }
+.kb-assign-note { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.kb-words-src { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); cursor: pointer; }
+.kb-words-src input[type="checkbox"] { width: auto; margin: 0; }
+.kb-words { margin: 8px 0; font-size: 12px; }
+/* Карточка предложения записи — в чате и во «Входящих». */
+.kb-proposal { border: 1px solid var(--accent); border-radius: var(--radius); padding: 8px 12px; margin: 6px 0; font-size: 12px; background: var(--bg-secondary);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text-primary); text-align: left; }
+.kb-proposal label { color: var(--text-secondary); }
+.kb-proposal-msg { align-self: stretch; }
+.kb-proposal-head { color: var(--text-secondary); }
+.kb-proposal-done { color: var(--text-muted); }
+.kb-proposal-warn { display: inline-block; color: var(--warning); margin-left: 6px; }
+.kb-proposal-title { font-weight: 600; color: var(--text-primary); margin: 4px 0 2px; width: 100%; }
+.kb-proposal-text { white-space: pre-wrap; color: var(--text-primary); line-height: 1.5; width: 100%; }
+.kb-proposal-ev { color: var(--text-muted); margin-top: 4px; }
+.kb-proposal-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.kb-proposal-row select, .kb-proposal-row input { width: auto; min-width: 180px; }
+.kb-proposal-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.kb-proposal-status { color: var(--danger); }
+.kb-proposal .btn-link { background: none; border: none; padding: 0 2px; cursor: pointer; color: var(--accent-light); font: inherit; }
+.kb-inbox-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+.kb-inbox-item { display: flex; gap: 8px; align-items: flex-start; }
+.kb-inbox-item > input[type="checkbox"] { width: auto; margin-top: 14px; }
+.kb-inbox-item > .kb-proposal { flex: 1; }
+.kb-proposal-assume { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); }
+.kb-proposal-similar { margin: 6px 0; padding: 6px 8px; border-left: 3px solid var(--accent); background: var(--bg-tertiary); color: var(--text-secondary); }
+.kb-proposal-similar[data-relation="conflict"] { border-left-color: var(--warning); }
+.kb-proposal-diff { margin-top: 4px; white-space: pre-wrap; color: var(--text-primary); line-height: 1.5; }
+.kb-proposal-diff del { color: var(--danger); }
+.kb-proposal-diff ins { color: var(--success); text-decoration: none; background: color-mix(in srgb, var(--success) 15%, transparent); }
+.kb-proposal-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.kb-proposal-pair > div > div { white-space: pre-wrap; color: var(--text-primary); line-height: 1.5; }
+@media (max-width: 600px) { .kb-proposal-pair { grid-template-columns: 1fr; } }
+.kb-harvest { align-self: stretch; }
+.kb-harvest-status { font-size: 12px; margin-top: 4px; line-height: 1.5; }
+.kb-harvest-actions:not(:empty) { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+.kb-note-revs summary { cursor: pointer; }
+.kb-note-rev { margin-top: 6px; }
+.kb-note-rev > div { white-space: pre-wrap; color: var(--text-secondary); }
+.kb-mark { font-size: 11px; white-space: nowrap; }
+/* Уход за записями: срок проверки, «⏰ Проверить», предложения. */
+.kb-note-review { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; font-size: 13px; }
+.kb-note-review label { margin: 0; }
+.kb-note-review select { width: auto; }
+.kb-row .kb-review { background: none; border: none; padding: 0 4px; cursor: pointer; font: inherit; font-size: 11px; color: var(--warning); white-space: nowrap; }
+.kb-care-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.kb-care .btn-link { background: none; border: none; padding: 0; cursor: pointer; color: var(--accent-light); font: inherit; }
+/* Цитаты из базы знаний: номер в ответе, строка kb_cite, окно источника. */
+.kb-cite { color: var(--accent-light); cursor: pointer; font-weight: 600; padding: 0 1px; }
+.kb-cite:hover, .kb-cite-chip:hover { text-decoration: underline; }
+.kb-cite-chip { color: var(--accent-light); cursor: pointer; margin-left: 6px; font-size: 12px; }
+.kb-cite-quote { margin: 0 0 8px; padding: 6px 10px; border-left: 3px solid var(--accent); background: var(--bg-tertiary); white-space: pre-wrap; }
+.kb-cite-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.kb-cite-frag { margin-top: 10px; max-height: 40vh; overflow: auto; font-size: 13px; line-height: 1.5; }
+.kb-cite-part { padding: 6px 0; border-top: 1px solid var(--border); white-space: pre-wrap; color: var(--text-secondary); }
+.kb-cite-part.current { color: var(--text-primary); }
+.kb-cite-frag mark { background: color-mix(in srgb, var(--warning) 35%, transparent); color: inherit; }
+/* «Знания задачи» в редакторе задачи. */
+.pr-learn label.check-row { text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 13px; justify-content: flex-start; margin-top: 6px; }
+.pr-learn .check-row select { width: auto; min-width: 200px; margin-left: 4px; }
 
 .file-card .tool-header { display: flex; align-items: center; gap: 8px; }
 
@@ -2784,6 +3011,113 @@ iframe.sandbox-dialog-view {
   color: var(--text-secondary);
   margin-bottom: 4px;
 }
+
+/* ===== ВЫБОР МОДЕЛЕЙ ПРОВАЙДЕРА =====
+   Раскладка настроек (.settings-layout): вкладки по назначению слева,
+   под ними «Сохранить»/«Отмена». Справа таблица; прокручивается только
+   она, а строка о выбранной модели под ней всегда на виду. Высота
+   постоянная, чтобы окно не прыгало при смене вкладки и фильтра. */
+.modal.modal-wide.modal-models { height: min(660px, 88vh); }
+.mp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+.mp-loading { padding: 20px; text-align: center; color: var(--text-muted); }
+.mp-error { color: var(--danger); font-size: 13px; }
+.mp-intro { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.mp-panel .form-group.mp-filter { margin: 0; }
+.mp-panel #mp_filter { width: 100%; }
+.mp-count { margin-left: 6px; font-size: 11px; opacity: .75; }
+.mp-table-wrap {
+  flex: 1 1 auto;
+  min-height: 120px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.mp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mp-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-tertiary);
+  text-align: left;
+  padding: 0;
+}
+.mp-sort {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 8px;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mp-sort:hover { color: var(--text-primary); }
+.mp-sort-mark { font-size: 10px; min-width: 10px; }
+.mp-table th.mp-num .mp-sort { justify-content: flex-end; }
+.mp-table td { padding: 6px 8px; border-top: 1px solid var(--border); vertical-align: middle; }
+/* Кнопка строки: «+ Добавить» или неактивная «уже добавлена». */
+.mp-table th.mp-act, .mp-table td.mp-act { width: 1%; white-space: nowrap; text-align: right; }
+.mp-table td.mp-act { padding: 4px 8px; }
+.mp-add { padding: 4px 10px; font-size: 11px; }
+.mp-add:disabled { opacity: .7; cursor: default; }
+.mp-table td.mp-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mp-table td.mp-type { white-space: nowrap; }
+.mp-name { overflow-wrap: anywhere; }
+.mp-row { cursor: pointer; }
+.mp-row:hover td { background: var(--bg-tertiary); }
+.mp-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.mp-row.mp-sel td { background: rgba(108, 92, 231, .16); }
+.mp-row.mp-sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.mp-row.mp-has { color: var(--text-muted); }
+.mp-empty td { color: var(--text-muted); text-align: center; padding: 14px 8px; }
+.mp-unknown { color: var(--text-muted); }
+.mp-sub { display: block; font-size: 11px; color: var(--text-muted); }
+.mp-flag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.mp-flag.mp-flag-bad { color: var(--danger); }
+.mp-flag.mp-flag-good { color: var(--success); }
+.mp-status {
+  flex: none;
+  min-height: 20px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.mp-status.mp-good { border-left-color: var(--success); }
+.mp-status.mp-warn { border-left-color: var(--warning); }
+.mp-status.mp-bad { border-left-color: var(--danger); }
+.mp-status .mp-muted { color: var(--text-muted); }
+.mp-detail { margin-top: 4px; font-size: 11px; color: var(--text-muted); }
+.modal-models .modal-actions .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Ссылка на руководство в окне первого запуска. */
+#first_run_guide { color: var(--accent-light); font-weight: 600; }
 
 /* ===== ОБРАТНЫЙ ОТСЧЁТ ОЖИДАНИЯ =====
    Пока окно инструмента открыто, ход агента стоит. Человек об этом знать
