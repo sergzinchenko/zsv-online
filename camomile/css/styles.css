@@ -415,7 +415,10 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
   transition: var(--transition);
 }
 .copy-name-btn:hover { opacity: 1; color: var(--accent-light); background: var(--bg-hover); }
-.tool-card:hover .copy-name-btn, .file-card:hover .copy-name-btn { opacity: 0.85; }
+.tool-card:hover .copy-name-btn, .file-card:hover .copy-name-btn,
+.prompt-card:hover .copy-name-btn { opacity: 0.85; }
+/* Название навыка и кнопка копирования рядом, значки карточки справа. */
+.tool-name-wrap { display: flex; align-items: center; gap: 4px; min-width: 0; }
 
 .sidebar-footer {
   padding: 12px;
@@ -643,6 +646,11 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
 .diff-view .diff-del { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--text-primary); }
 .diff-view .diff-hunk { color: var(--accent-light); }
 .diff-view .diff-file { color: var(--text-muted); }
+
+/* Списки в ответе (core/markdown.js). */
+.md-list { margin: 4px 0; padding-left: 22px; }
+.md-list .md-list { margin: 2px 0; }
+.md-list > li { margin: 2px 0; }
 
 /* Таблицы в ответе (core/markdown.js): прокрутка по горизонтали внутри
    своей рамки, а не всей ленты; кнопка копирования — как у кода. */
@@ -1038,6 +1046,18 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
   animation: statusSpin 0.8s linear infinite;
 }
 .sidebar-item.chat-item.chat-busy .title { color: var(--accent-light); }
+/* Очередь ходов (А10-02): номер в списке чатов и ждущее сообщение в ленте. */
+.chat-queue-mark { flex-shrink: 0; font-size: 11px; color: var(--warning); white-space: nowrap; }
+.chat-queue-mark.stale { color: var(--text-muted); }
+/* Чат ждёт ответа человека (А10-03). */
+.chat-await-mark { flex-shrink: 0; font-size: 11px; }
+.interrupted-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.interrupted-row.opened .link-btn { color: var(--text-muted); }
+/* Окно-вопрос хода: из какого чата и сколько ещё ждут. */
+.ask-from { margin: -4px 0 10px; font-size: 12px; color: var(--text-secondary); }
+.message.user.queued { opacity: 0.75; border-style: dashed; }
+.message.user.queued .queue-meta { color: inherit; opacity: 0.9; }
+.message.user.queued .queue-meta .link-btn { color: inherit; text-decoration: underline; }
 
 .typing-indicator {
   display: flex;
@@ -1141,6 +1161,8 @@ body.resizing-sidebar #sidebar * { pointer-events: none; }
 }
 
 .message.system.context-alert { max-width: 90%; font-size: 13px; }
+/* Сведения о ходе (например, шаги плана одновременно, А10-05) — без тревоги. */
+.message.system.context-alert.info { color: var(--text-secondary); }
 .message.system.context-alert.warn {
   border: 1px solid var(--warning);
   color: var(--warning);
@@ -1798,6 +1820,9 @@ body.resizing-plan #plan-panel * { pointer-events: none; }
 
 /* Набор чата в редакторе промпта: навыки с вложенными инструментами */
 .pscope-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+.pscope-pick { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.form-group .pscope-pick > label { flex: 0 0 90px; text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 13px; color: var(--text-primary); }
+.form-group .pscope-pick > select { flex: 1; min-width: 0; }
 .pscope-head > span { flex: 1 0 100%; font-size: 12px; color: var(--text-secondary); }
 #pr_scope_filter { margin-bottom: 6px; width: 100%; }
 .pscope-list { max-height: 260px; }
@@ -3172,6 +3197,17 @@ iframe.sandbox-dialog-view {
 
 /* ===== ПРОВЕРКА ФОРМЫ МОДЕЛЬЮ (ui/ui-review.js) ===== */
 .modal-actions .review-btn { margin-right: auto; }
+/* Кнопка и выбор модели — одной группой слева; в узком окне группа
+   занимает свою строку над «Отмена» и «Сохранить». */
+.modal-actions:has(.review-ctl) { flex-wrap: wrap; }
+.modal-actions .review-ctl { display: flex; gap: 6px; align-items: center; margin-right: auto; min-width: 0; }
+.modal-actions .review-ctl .review-btn { margin-right: 0; }
+.review-ctl .review-model {
+  max-width: 280px; min-width: 0; padding: 6px 8px;
+  background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); font-size: 12px; font-family: inherit; outline: none;
+}
+.review-ctl .review-model:focus { border-color: var(--accent); }
 .modal-actions .modal-aside-btn { order: -1; margin-right: auto; align-self: center; }
 /* Рядом с кнопкой-справкой подписи кнопок выбора не переносятся: в
    узком окне «Начать с нуля» разваливалось на две строки. */

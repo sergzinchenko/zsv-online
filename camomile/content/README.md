@@ -67,13 +67,13 @@
 
 Чтение данных Naumen Service Desk через REST API: заявки, сотрудники, подразделения и другие объекты. Только чтение.
 
-Архив: `naumen-sd-1.0.0.json`, пароль: `camomile-naumen-sd`. Инструменты лежат в папке «Naumen SD», навыки — в папке «Прикладные / Naumen SD».
+Архив: `naumen-sd-1.1.0.json`, пароль: `camomile-naumen-sd`. Инструменты лежат в папке «Naumen SD», навыки — в папке «Прикладные / Naumen SD».
 
 | Навык | Версия | Инструменты |
 |---|---|---|
-| Naumen SD: серверы | 1.0.5 | `sd_system`, `sd_check` |
-| Naumen SD: чтение данных | 1.2.1 | `sd_find`, `sd_get` |
-| Naumen SD: исследование и знания | 1.1.1 | `sd_knowledge`, `sd_describe`, `sd_learn`, `sd_profile`, `sd_summary` |
+| Naumen SD: серверы | 1.0.6 | `sd_system`, `sd_check` |
+| Naumen SD: чтение данных | 1.3.0 | `sd_find`, `sd_get`, `sd_last_comments` |
+| Naumen SD: исследование и знания | 1.1.2 | `sd_knowledge`, `sd_describe`, `sd_learn`, `sd_profile`, `sd_summary` |
 
 Данные навыков: раздел памяти «Naumen SD: серверы и знания» (ключи `sd.*`). Их видят только инструменты навыков пакета. С навыком переносится `sd.kb.*`, `sd.schema.*`, `sd.dict.*`, `sd.profiles`, остальное личное.
 
